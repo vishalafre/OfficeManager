@@ -1933,7 +1933,7 @@ namespace Office_Manager
         private void setBillNo(string billDt)
         {
             int billNo = 1;
-            string query = "SELECT TOP 1 CAST((SELECT TOP 1 * FROM SPLIT(BILL_ID, '-') ORDER BY 1) AS INT) +1 AS MAX_VALUE FROM BILL where firm = @FIRM and bill_dt between (cast(concat('01-apr-', (select case sign(month(@BILL_DT) - 3) when 1 then cast(SUBSTRING(cast(YEAR(@BILL_DT) as varchar), LEN(cast(YEAR(@BILL_DT) as varchar)) - 1, 2) as int) else cast(SUBSTRING(cast(YEAR(@BILL_DT) as varchar), LEN(cast(YEAR(@BILL_DT) as varchar)) - 1, 2) - 1 as int) end)) as date)) and (cast(concat('31-mar-', (select case sign(month(@BILL_DT) - 3) when 1 then cast(SUBSTRING(cast(YEAR(@BILL_DT) as varchar), LEN(cast(YEAR(@BILL_DT) as varchar)) - 1, 2) + 1 as int) else cast(SUBSTRING(cast(YEAR(@BILL_DT) as varchar), LEN(cast(YEAR(@BILL_DT) as varchar)) - 1, 2) as int) end)) as date)) ORDER BY 1 DESC";
+            string query = "SELECT TOP 1 CAST((SELECT TOP 1 * FROM SPLIT(BILL_ID, '/') ORDER BY 1) AS INT) +1 AS MAX_VALUE FROM BILL where firm = @FIRM and bill_dt between (cast(concat('01-apr-', (select case sign(month(@BILL_DT) - 3) when 1 then cast(SUBSTRING(cast(YEAR(@BILL_DT) as varchar), LEN(cast(YEAR(@BILL_DT) as varchar)) - 1, 2) as int) else cast(SUBSTRING(cast(YEAR(@BILL_DT) as varchar), LEN(cast(YEAR(@BILL_DT) as varchar)) - 1, 2) - 1 as int) end)) as date)) and (cast(concat('31-mar-', (select case sign(month(@BILL_DT) - 3) when 1 then cast(SUBSTRING(cast(YEAR(@BILL_DT) as varchar), LEN(cast(YEAR(@BILL_DT) as varchar)) - 1, 2) + 1 as int) else cast(SUBSTRING(cast(YEAR(@BILL_DT) as varchar), LEN(cast(YEAR(@BILL_DT) as varchar)) - 1, 2) as int) end)) as date)) ORDER BY 1 DESC";
             SqlCommand oCmd = new SqlCommand(query, con);
             oCmd.Parameters.AddWithValue("@FIRM", company);
             oCmd.Parameters.AddWithValue("@BILL_DT", billDt);
@@ -1957,8 +1957,27 @@ namespace Office_Manager
                 year++;
             }
 
+            string yearInit = year + "-" + (year + 1);
+
             int prefix = year - 17;
-            String initials = "";
+
+            String compInit = "";
+            switch (company.Substring(0, 1))
+            {
+                case "A":
+                    compInit = "AE";
+                    break;
+
+                case "E":
+                    compInit = "ET";
+                    break;
+
+                default:
+                    compInit = "XX";
+                    break;
+            }
+
+            /*
             do
             {
                 int offset = 0;
@@ -1975,7 +1994,7 @@ namespace Office_Manager
             if (initials.Length == 1)
             {
                 initials = company.Substring(0, 1) + initials;
-            }
+            }*/
 
             String billId = "" + billNo;
             if ((billNo + "").Length == 1)
@@ -1987,7 +2006,7 @@ namespace Office_Manager
                 billId = "0" + billNo;
             }
 
-            String invNo = initials + "-" + billId;
+            String invNo = compInit + "/" + yearInit + "/" + billId;
             invoiceNo.Text = invNo;
         }
 

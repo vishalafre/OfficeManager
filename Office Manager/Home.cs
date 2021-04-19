@@ -10,6 +10,8 @@ using System.Windows.Forms;
 using System.Data.SqlClient;
 using System.IO;
 using Office_Manager;
+using NPOI.SS.UserModel;
+using NPOI.HSSF.UserModel;
 
 namespace Office_Manager
 {
@@ -163,6 +165,193 @@ namespace Office_Manager
             con.Close();
 
             MessageBox.Show("Done");
+        }
+
+        static void InsertRows(ref ISheet sheet1, int fromRowIndex, int rowCount)
+        {
+            sheet1.ShiftRows(fromRowIndex, sheet1.LastRowNum, rowCount);
+
+            for (int rowIndex = fromRowIndex; rowIndex < fromRowIndex + rowCount; rowIndex++)
+            {
+                IRow rowSource = sheet1.GetRow(rowIndex + rowCount);
+                IRow rowInsert = sheet1.CreateRow(rowIndex);
+                rowInsert.Height = rowSource.Height;
+                for (int colIndex = 0; colIndex < rowSource.LastCellNum; colIndex++)
+                {
+                    ICell cellSource = rowSource.GetCell(colIndex);
+                    ICell cellInsert = rowInsert.CreateCell(colIndex);
+                    if (cellSource != null)
+                    {
+                        cellInsert.CellStyle = cellSource.CellStyle;
+                    }
+                }
+            }
+        }
+
+        private void pictureBox1_Click(object sender, EventArgs e)
+        {
+            IWorkbook templateWorkbook;
+            using (FileStream fs = new FileStream(@"C:\Users\Vishal\OneDrive\Documents\bank.xls", FileMode.Open, FileAccess.ReadWrite))
+            {
+                templateWorkbook = new HSSFWorkbook(fs);
+                fs.Close();
+            }
+
+            IWorkbook newWorkbook;
+            using (FileStream fs = new FileStream(@"C:\Users\Vishal\OneDrive\Documents\old-format-stmt.xls", FileMode.Open, FileAccess.ReadWrite))
+            {
+                newWorkbook = new HSSFWorkbook(fs);
+                fs.Close();
+            }
+
+            try
+            {
+                ISheet sheet = templateWorkbook.GetSheet("OpTransactionHistoryUX5");
+                ISheet sheetNew = newWorkbook.GetSheet("afre july");
+
+                int row = 12;
+                int count = 0;
+
+                bool rowsInserted = false;
+
+                int totalRows = 12;
+                while (true)
+                {
+                    if (sheet.GetRow(totalRows) == null)
+                    {
+                        break;
+                    }
+                    totalRows++;
+                }
+
+                row = totalRows - 1;
+                while (true)
+                {
+                    if (row == 11)
+                    {
+                        break;
+                    }
+
+                    if (sheet.GetRow(row).GetCell(3) == null ||
+                        sheet.GetRow(row).GetCell(3).StringCellValue == null ||
+                        sheet.GetRow(row).GetCell(3).StringCellValue.Trim().Equals(""))
+                    {
+                        row--;
+                        continue;
+                    }
+
+
+                    if (sheetNew.GetRow(13 + count).GetCell(0) == null || 
+                    sheetNew.GetRow(13 + count).GetCell(0).CellType.Equals(CellType.Blank) || 
+                    (sheetNew.GetRow(13 + count).GetCell(0).CellType.Equals(CellType.String) 
+                    && sheetNew.GetRow(13 + count).GetCell(0).StringCellValue.Trim().Equals("")))
+                    {
+                        InsertRows(ref sheetNew, 13 + count, 1);
+                        sheetNew.GetRow(13 + count).CreateCell(0);
+
+                        sheetNew.GetRow(13 + count).CreateCell(1);
+                        sheetNew.GetRow(13 + count).CreateCell(2);
+                        sheetNew.GetRow(13 + count).CreateCell(3);
+                        sheetNew.GetRow(13 + count).CreateCell(4);
+                        sheetNew.GetRow(13 + count).CreateCell(5);
+                        sheetNew.GetRow(13 + count).CreateCell(6);
+                        sheetNew.GetRow(13 + count).CreateCell(7);
+                        sheetNew.GetRow(13 + count).CreateCell(8);
+
+                    rowsInserted = true;
+                    }
+
+                    sheetNew.GetRow(13 + count).GetCell(0).SetCellValue(count + 1);
+
+                    string date = sheet.GetRow(row).GetCell(1).StringCellValue.Replace("/", "-");
+                    sheetNew.GetRow(13 + count).GetCell(1).SetCellValue(date);
+
+                    string narration = sheet.GetRow(row).GetCell(3).StringCellValue;
+                    sheetNew.GetRow(13 + count).GetCell(2).SetCellValue(narration);
+
+                    string chqNo = "";
+                    if (sheet.GetRow(row).GetCell(9) != null)
+                    {
+                        chqNo = sheet.GetRow(row).GetCell(9).StringCellValue;
+                        sheetNew.GetRow(13 + count).GetCell(4).SetCellValue(chqNo);
+                    }
+                    string debit = "";
+                    if (sheet.GetRow(row).GetCell(9) != null)
+                    {
+                        debit = sheet.GetRow(row).GetCell(11).StringCellValue;
+                        sheetNew.GetRow(13 + count).GetCell(5).SetCellValue(debit);
+                    }
+                    string credit = "";
+                    if (sheet.GetRow(row).GetCell(9) != null)
+                    {
+                        credit = sheet.GetRow(row).GetCell(17).StringCellValue;
+                        sheetNew.GetRow(13 + count).GetCell(6).SetCellValue(credit);
+                    }
+                    string balance = sheet.GetRow(row).GetCell(20).StringCellValue;
+                    sheetNew.GetRow(13 + count).GetCell(7).SetCellValue(balance);
+
+                    sheetNew.GetRow(13 + count).GetCell(8).SetCellValue(date);
+
+                    row--;
+                    count++;
+                }
+            
+                if(rowsInserted)
+            {
+                sheetNew.GetRow(15 + count).GetCell(0).SetCellValue("Total no. of Transactions : " + count);
+            }
+
+                while(true && !rowsInserted)
+                {
+                int records = count;
+
+                IRow r = sheetNew.GetRow(13 + count);
+                    if(r == null)
+                    {
+                        count++;
+                        continue;
+                    }
+
+                    ICell c = r.GetCell(0);
+                    if(c != null)
+                    {
+                        if (c.CellType.Equals(CellType.String) && c.StringCellValue.Contains("Total no."))
+                        {
+                            c.SetCellValue("Total no. of Transactions : " + records);
+                            break;
+                        } else
+                        {
+                            sheetNew.RemoveRow(r);
+                        }
+                    }
+                    count++;
+                }
+
+                templateWorkbook.Close();
+                if (File.Exists(@"C:\Users\Vishal\OneDrive\Documents\Tally Statement.xls"))
+                {
+                    File.Delete(@"C:\Users\Vishal\OneDrive\Documents\Tally Statement.xls");
+                }
+
+                using (FileStream file = new FileStream(@"C:\Users\Vishal\OneDrive\Documents\Tally Statement.xls", FileMode.CreateNew, FileAccess.Write))
+                {
+                    newWorkbook.Write(file);
+                    file.Close();
+                }
+                MessageBox.Show("Workbook with new format created");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                if (templateWorkbook != null)
+                {
+                    templateWorkbook.Close();
+                }
+                if (newWorkbook != null)
+                {
+                    newWorkbook.Close();
+                }
+            }
         }
     }
 }

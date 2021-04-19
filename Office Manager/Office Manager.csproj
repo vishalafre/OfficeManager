@@ -838,6 +838,7 @@
     <None Include="Resources\generate_ewaybill.png" />
     <None Include="Resources\generate_ewb.png" />
     <None Include="Resources\cone_supply_suggestion.png" />
+    <None Include="Resources\excel.png" />
     <Content Include="Resources\merge.png" />
     <None Include="Resources\print_ewb.png" />
     <None Include="Resources\suggestor_text.png" />

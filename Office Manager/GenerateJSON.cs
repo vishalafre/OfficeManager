@@ -86,7 +86,7 @@ namespace Office_Manager
                 {
                     count++;
                     string userGst = oReader["FROM_GSTIN"].ToString();
-                    string billNo = oReader["BILL_ID"].ToString().Split('/')[0];
+                    string billNo = oReader["BILL_ID"].ToString();
                     string billDt = oReader["BILL_DT"].ToString();
 
                     string transType = "1";

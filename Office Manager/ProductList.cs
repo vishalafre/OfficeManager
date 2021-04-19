@@ -31,7 +31,7 @@ namespace Office_Manager
             col.Name = "Product";
             dataGridView1.Columns.Add(col);
 
-            string sql = "select tech_name Product from Product where firm = '" + firm + "' order by tech_name";
+            string sql = "select tech_name Product, comm_name COMMERCIAL_NAME from Product where firm = '" + firm + "' order by tech_name";
             SqlDataAdapter dataadapter = new SqlDataAdapter(sql, con);
             DataSet ds = new DataSet();
             con.Open();

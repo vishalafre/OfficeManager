@@ -97,6 +97,7 @@ namespace Office_Manager
 
         private void MDIParent1_Load(object sender, EventArgs e)
         {
+            //CenterToScreen();
             WindowState = FormWindowState.Maximized;
             var home = new Home();
             home.MdiParent = this;

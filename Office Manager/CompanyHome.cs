@@ -60,7 +60,7 @@ namespace Office_Manager
 
         public void performTask()
         {
-            String query = "SELECT BI.ROLL_NO, CONVERT(VARCHAR(12), BILL_DT, 107) BILL_DT, ITEM_NAME, MTR, CAST(case when item_name in ('Tamil Nadu Exp.', 'Andhra Exp.', 'Gitanjali exp.', 'G.T. Exp. 52 ( White Synthetic Cloth)') then round((mtr-5)/1.02,0) when item_name = 'Pavan Exp.' then round((mtr+495)/1.01,0) else round((mtr-5)/1.01,0) end AS INTEGER) ROLL_MTR, (SELECT G_NAME FROM GODOWN WHERE GID = GODOWN) GODOWN FROM BILL_ITEM BI, BILL B, ITEM I WHERE B.BILL_ID = BI.BILL_ID AND BILL_DT > '30-SEP-18' AND QTY = 1 and bi.firm = '" + firm +"' AND ISNUMERIC(BI.ROLL_NO) = 1 AND BI.ROLL_NO NOT IN (SELECT ROLL_NO FROM ROLL rr where rr.fy = bi.fy) AND I.ITEM_ID = BI.ITEM order by item_name, godown";
+            String query = "SELECT BI.ROLL_NO, CONVERT(VARCHAR(12), BILL_DT, 107) BILL_DT, ITEM_NAME, MTR, CAST(case when item_name in ('Tamil Nadu Exp.', 'Andhra Exp.', 'Gitanjali exp.', 'Karnataka Exp.', 'G.T. Exp. 52 ( White Synthetic Cloth)') then round((mtr-5)/1.02,0) when item_name = 'Pavan Exp. old' then round((mtr+495)/1.01,0) else round((mtr-5)/1.01,0) end AS INTEGER) ROLL_MTR, (SELECT G_NAME FROM GODOWN WHERE GID = GODOWN) GODOWN FROM BILL_ITEM BI, BILL B, ITEM I WHERE B.BILL_ID = BI.BILL_ID AND BILL_DT > '30-SEP-18' AND QTY = 1 and bi.firm = '" + firm +"' AND ISNUMERIC(BI.ROLL_NO) = 1 AND BI.ROLL_NO NOT IN (SELECT ROLL_NO FROM ROLL rr where rr.fy = bi.fy) AND I.ITEM_ID = BI.ITEM order by item_name, godown";
 
             // populate table
             fetchData(dgv, query);
