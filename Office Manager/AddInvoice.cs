@@ -2316,19 +2316,6 @@ namespace Office_Manager
             output += time;
 
             con1.Close();
-
-            File.WriteAllText(@"C:\Invoices\rollNo.txt", output);
-
-            await Task.Run(() =>
-            {
-                using (WebClient client = new WebClient())
-                {
-                    client.Credentials = new NetworkCredential("u220970540", "Mycomputer12@");
-                    client.UploadFile("ftp://files141.hostinger.in/office-manager/roll_no.txt", WebRequestMethods.Ftp.UploadFile, @"C:\Invoices\rollNo.txt");
-                }
-            });
-
-            File.Delete(@"C:\Invoices\rollNo.txt");
         }
 
         private void updateBtn_Click(object sender, EventArgs e)
