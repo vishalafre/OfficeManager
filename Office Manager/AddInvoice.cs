@@ -2333,14 +2333,8 @@ namespace Office_Manager
             {
                 using (WebClient client = new WebClient())
                 {
-                    try
-                    {
-                        client.Credentials = new NetworkCredential("u220970540", "Mycomputer12@");
-                        client.UploadFile("ftp://u220970540@217.21.93.152/domains/afrestudios.com/public_html/office-manager/roll_no.txt", WebRequestMethods.Ftp.UploadFile, @"C:\Invoices\rollNo.txt");
-                    } catch (Exception e)
-                    {
-                        String s = e.Message;
-                    }
+                    client.Credentials = new NetworkCredential("u220970540", "Mycomputer12@");
+                    client.UploadFile("ftp://files141.hostinger.in/office-manager/roll_no.txt", WebRequestMethods.Ftp.UploadFile, @"C:\Invoices\rollNo.txt");
                 }
             });
 
