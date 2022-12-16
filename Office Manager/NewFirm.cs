@@ -40,7 +40,7 @@ namespace Office_Manager
         private Boolean validateFields()
         {
             int n;
-            if(int.TryParse(pin.Text, out n)) {
+            if(!int.TryParse(pin.Text, out n)) {
                 MessageBox.Show("Please enter valid PIN Code");
                 return false;
             }
@@ -75,7 +75,7 @@ namespace Office_Manager
             SqlCommand cmd = new SqlCommand("insert into company values(@NAME, " +
                 "@GSTIN, @C_ADDRESS, @MOBILE, @OFFICE, " +
                 "@BANK_NAME, @B_ADDRESS, @IFSC, " +
-                "@AC_NO, @LOGO_IMG, @EMAIL, @CITY, @PIN)", con);
+                "@AC_NO, '', @EMAIL, @LOGO_IMG, @CITY, @PIN, '', '')", con);
             cmd.Parameters.AddWithValue("@NAME", cName.Text);
             cmd.Parameters.AddWithValue("@GSTIN", gstIn.Text);
             cmd.Parameters.AddWithValue("@C_ADDRESS", cAddr.Text);
@@ -92,13 +92,13 @@ namespace Office_Manager
             int i = cmd.ExecuteNonQuery();
 
             cmd = new SqlCommand("insert into TRANSPORT (FIRM, T_NAME) values(@FIRM, " +
-                "@T_NAME, @LR_NO)", con);
+                "@T_NAME)", con);
             cmd.Parameters.AddWithValue("@FIRM", cName.Text);
             cmd.Parameters.AddWithValue("@T_NAME", "NA");
             i = cmd.ExecuteNonQuery();
 
             cmd = new SqlCommand("insert into AGENT (FIRM, A_NAME) values(@FIRM, " +
-                "@T_NAME, @LR_NO)", con);
+                "@A_NAME)", con);
             cmd.Parameters.AddWithValue("@FIRM", cName.Text);
             cmd.Parameters.AddWithValue("@A_NAME", "NA");
             i = cmd.ExecuteNonQuery();

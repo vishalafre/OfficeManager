@@ -14,33 +14,82 @@ namespace Office_Manager
 {
     public partial class TallyXML : Form
     {
-        string firm;
+        public static string firm;
         public TallyXML(string company)
         {
             InitializeComponent();
-            this.firm = company;
+            firm = company;
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
             String data = textBox1.Text.ToUpper();
-            String output = "(";
+            String input = "(";
+            Boolean singleBill = false;
 
             String[] parts;
             if (data.Contains(","))
             {
                 parts = data.Split(',');
 
-                foreach(String s in parts)
+                foreach (String s in parts)
                 {
                     if (s.Contains(":"))
                     {
-                        string p1 = parseBillIds(s);
-                        output += p1;
+                        string p1 = TallyXML.parseBillIds(s);
+                        input += p1;
                     }
                     else
                     {
-                        output += "'" + s.Trim() + "', ";
+                        int n;
+                        if (Int32.TryParse(s.Trim(), out n))
+                        {
+                            string billNo = s.Trim();
+                            string sDate = DateTime.Now.ToString();
+                            DateTime datevalue = (Convert.ToDateTime(sDate.ToString()));
+                            int month = Int32.Parse(datevalue.Month.ToString());
+
+                            int year = Int32.Parse(datevalue.Year.ToString().Substring(datevalue.Year.ToString().Length - 2)) - 1;
+                            if (month > 3)
+                            {
+                                year++;
+                            }
+
+                            string yearInit = year + "-" + (year + 1);
+
+                            String compInit;
+                            switch (firm.Substring(0, 1))
+                            {
+                                case "A":
+                                    compInit = "AE";
+                                    break;
+
+                                case "E":
+                                    compInit = "ET";
+                                    break;
+
+                                default:
+                                    compInit = "XX";
+                                    break;
+                            }
+
+                            String billId = "" + billNo;
+                            if ((billNo + "").Length == 1)
+                            {
+                                billId = "00" + billNo;
+                            }
+                            else if ((billNo + "").Length == 2)
+                            {
+                                billId = "0" + billNo;
+                            }
+
+                            string invNo = compInit + "/" + yearInit + "/" + billId;
+                            input += "'" + invNo + "', ";
+                        }
+                        else
+                        {
+                            input += "'" + s.Trim() + "', ";
+                        }
                     }
                 }
             }
@@ -48,15 +97,69 @@ namespace Office_Manager
             {
                 if (data.Contains(":"))
                 {
-                    string p1 = parseBillIds(data);
-                    output += p1;
+                    string p1 = TallyXML.parseBillIds(data);
+                    input += p1;
                 }
-                else
+                else if(data.Contains(","))
                 {
-                    output += "'" + data.Trim() + "', ";
+                    input += "'" + data.Trim() + "', ";
+                } else
+                {
+                    singleBill = true;
+
+                    string billNo = data.Trim();
+                    string sDate = DateTime.Now.ToString();
+                    DateTime datevalue = (Convert.ToDateTime(sDate.ToString()));
+                    int month = Int32.Parse(datevalue.Month.ToString());
+
+                    int year = Int32.Parse(datevalue.Year.ToString().Substring(datevalue.Year.ToString().Length - 2)) - 1;
+                    if (month > 3)
+                    {
+                        year++;
+                    }
+
+                    string yearInit = year + "-" + (year + 1);
+
+                    String compInit;
+                    switch (firm.Substring(0, 1))
+                    {
+                        case "A":
+                            compInit = "AE";
+                            break;
+
+                        case "E":
+                            compInit = "ET";
+                            break;
+
+                        default:
+                            compInit = "XX";
+                            break;
+                    }
+
+                    String billId = "" + billNo;
+                    if ((billNo + "").Length == 1)
+                    {
+                        billId = "00" + billNo;
+                    }
+                    else if ((billNo + "").Length == 2)
+                    {
+                        billId = "0" + billNo;
+                    }
+
+                    string invNo = compInit + "/" + yearInit + "/" + billId;
+                    input += "'" + invNo + "'";
                 }
             }
-            output = output.Substring(0, output.Length - 2) + ")";
+
+            string output;
+            if (singleBill)
+            {
+                output = input + ")";
+            } 
+            else
+            {
+                output = input.Substring(0, input.Length - 2) + ")";
+            }
 
             string mainFile = File.ReadAllText(Path.GetDirectoryName(Application.ExecutablePath) + @"\Files\tally_xml_template.xml");
             string cgstFile = File.ReadAllText(Path.GetDirectoryName(Application.ExecutablePath) + @"\Files\cgst_xml_template.txt");
@@ -160,19 +263,70 @@ namespace Office_Manager
             string output = "";
             string[] parts = data.Split(':');
 
-            int num1 = Int32.Parse(parts[0].Split('-')[1]);
-            int num2 = Int32.Parse(parts[1].Split('-')[1]);
-            string prefix = parts[0].Split('-')[0].Trim();
+            int num1;
+            if(!Int32.TryParse(parts[0].Trim(), out num1)) {
+                num1 = Int32.Parse(parts[0].Trim().Split('/')[2]);
+            }
+
+            int num2;
+            if (!Int32.TryParse(parts[1].Trim(), out num2))
+            {
+                num2 = Int32.Parse(parts[1].Trim().Split('/')[2]);
+            }
+
+            // get prefix
+
+            string sDate = DateTime.Now.ToString();
+            DateTime datevalue = (Convert.ToDateTime(sDate.ToString()));
+            int month = Int32.Parse(datevalue.Month.ToString());
+
+            int year = Int32.Parse(datevalue.Year.ToString().Substring(datevalue.Year.ToString().Length - 2)) - 1;
+            if (month > 3)
+            {
+                year++;
+            }
+
+            string yearInit = year + "-" + (year + 1);
+
+            String compInit;
+            switch (firm.Substring(0, 1))
+            {
+                case "A":
+                    compInit = "AE";
+                    break;
+
+                case "E":
+                    compInit = "ET";
+                    break;
+
+                default:
+                    compInit = "XX";
+                    break;
+            }
+
+            string prefix = compInit + "/" + yearInit + "/";
+
+            //string prefix = parts[0].Split('-')[0].Trim();
 
             for(int i = num1; i<=num2; i++)
             {
+                string billId = i + "";
+                if ((i + "").Length == 1)
+                {
+                    billId = "00" + i;
+                }
+                else if ((i + "").Length == 2)
+                {
+                    billId = "0" + i;
+                }
+                /*
                 string numPrefix = "";
                 if (i < 100)
                 {
                     int n = (3 - i.ToString().Length) * 10;
                     numPrefix = n.ToString().Substring(1);
-                }
-                output += "'" + prefix + "-" + numPrefix + i + "', ";
+                }*/
+                output += "'" + prefix + billId + "', ";
             }
 
             return output;

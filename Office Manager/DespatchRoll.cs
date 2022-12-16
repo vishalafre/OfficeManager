@@ -68,7 +68,7 @@ namespace Office_Manager
                 button2.Visible = true;
 
                 con.Open();
-                string query = "select * from roll where firm = @FIRM AND ROLL_NO = @ROLL_NO";
+                string query = "select * from roll where firm = @FIRM AND ROLL_NO = @ROLL_NO ORDER BY DESPATCH_DATE DESC";
                 SqlCommand oCmd = new SqlCommand(query, con);
                 oCmd.Parameters.AddWithValue("@FIRM", firm);
                 oCmd.Parameters.AddWithValue("@ROLL_NO", rollNoFetched);
@@ -228,19 +228,33 @@ namespace Office_Manager
         {
             con.Open();
 
-            SqlCommand cmd = new SqlCommand("update roll_entry set roll_no = (SELECT MIN(RNO) ROLL_NO FROM (SELECT (RN + 1) RNO FROM (select 0 RN UNION SELECT distinct re1.roll_no from roll_entry re, ROLL_ENTRY RE1, roll_content rc, roll r where r.ROLL_NO = rc.roll_no and rc.entry_id = re.entry_id and R.ROLL_NO = @ROLL_NO AND RE1.GODOWN = RE.GODOWN AND RE1.QUALITY = RE.QUALITY AND RE1.DESPATCHED = 'N' AND re.FIRM = @FIRM and re1.roll_no > 0) X WHERE (RN + 1) not in (select re1.roll_no from roll_entry re, ROLL_ENTRY RE1, roll_content rc, roll r where r.ROLL_NO = rc.roll_no and rc.entry_id = re.entry_id and R.ROLL_NO = @ROLL_NO AND RE1.GODOWN = RE.GODOWN AND RE1.QUALITY = RE.QUALITY AND RE1.DESPATCHED = 'N' AND re.FIRM = @FIRM AND RE1.ROLL_NO > 0)) Y), despatched = 'N' where ENTRY_ID IN (SELECT ENTRY_ID FROM ROLL_CONTENT WHERE FIRM = @FIRM AND ROLL_NO = @ROLL_NO)", con);
+            SqlCommand cmd = new SqlCommand("update roll_entry set roll_no = (SELECT MIN(RNO) ROLL_NO FROM (SELECT (RN + 1) RNO FROM (select 0 RN UNION SELECT distinct re1.roll_no from roll_entry re, ROLL_ENTRY RE1, roll_content rc, roll r where r.ROLL_NO = rc.roll_no and rc.entry_id = re.entry_id and R.ROLL_NO = @ROLL_NO AND RE1.GODOWN = RE.GODOWN AND RE1.QUALITY = RE.QUALITY AND RE1.DESPATCHED = 'N' AND re.FIRM = @FIRM and re1.roll_no > 0) X WHERE (RN + 1) not in (select re1.roll_no from roll_entry re, ROLL_ENTRY RE1, roll_content rc, roll r where r.ROLL_NO = rc.roll_no and rc.entry_id = re.entry_id and R.ROLL_NO = @ROLL_NO AND RE1.GODOWN = RE.GODOWN AND RE1.QUALITY = RE.QUALITY AND RE1.DESPATCHED = 'N' AND re.FIRM = @FIRM AND RE1.ROLL_NO > 0)) Y), despatched = 'N' where ENTRY_ID IN (SELECT ENTRY_ID FROM ROLL_CONTENT WHERE FIRM = @FIRM AND ROLL_NO = @ROLL_NO) AND DATEADD(YEAR,1,TXN_DATE) > GETDATE()", con);
             cmd.Parameters.AddWithValue("@FIRM", firm);
             cmd.Parameters.AddWithValue("@ROLL_NO", textBox1.Text);
             cmd.ExecuteNonQuery();
 
-            cmd = new SqlCommand("DELETE FROM ROLL_CONTENT WHERE FIRM = @FIRM AND ROLL_NO = @ROLL_NO", con);
+            cmd = new SqlCommand("DELETE FROM ROLL_CONTENT WHERE FIRM = @FIRM AND ROLL_NO = @ROLL_NO AND ENTRY_ID IN (SELECT ENTRY_ID FROM ROLL_ENTRY WHERE DATEADD(YEAR,1,TXN_DATE) > GETDATE())", con);
             cmd.Parameters.AddWithValue("@FIRM", firm);
             cmd.Parameters.AddWithValue("@ROLL_NO", textBox1.Text);
             cmd.ExecuteNonQuery();
 
-            cmd = new SqlCommand("DELETE FROM ROLL WHERE FIRM = @FIRM AND ROLL_NO = @ROLL_NO", con);
+            int year = DateTime.Now.Year;
+            int month = DateTime.Now.Month;
+            string fy = "";
+
+            if (month >= 4)
+            {
+                fy = year + "-" + (year + 1).ToString().Substring(year.ToString().Length - 2);
+            }
+            else
+            {
+                fy = (year - 1) + "-" + year.ToString().Substring(year.ToString().Length - 2);
+            }
+
+            cmd = new SqlCommand("DELETE FROM ROLL WHERE FIRM = @FIRM AND ROLL_NO = @ROLL_NO AND FY = @FY", con);
             cmd.Parameters.AddWithValue("@FIRM", firm);
             cmd.Parameters.AddWithValue("@ROLL_NO", textBox1.Text);
+            cmd.Parameters.AddWithValue("@FY", fy);
             cmd.ExecuteNonQuery();
 
             con.Close();
@@ -284,7 +298,7 @@ namespace Office_Manager
                 toDt0 = fromDt0.AddYears(1).AddDays(-1);
 
                 con.Open();
-                string query = "select bill_dt, mtr, weight, width from bill b, bill_item bi where b.bill_id = bi.bill_id and qty = 1 and roll_no = @ROLL_NO AND BILL_DT > '30-SEP-18' and bill_dt between @FROM AND @TO";
+                string query = "select bill_dt, mtr, weight, width from bill b, bill_item bi where b.bill_id = bi.bill_id and qty = 1 and roll_no = @ROLL_NO AND BILL_DT > '30-SEP-18' and bill_dt between @FROM AND @TO ORDER BY 1 DESC";
                 SqlCommand oCmd = new SqlCommand(query, con);
                 oCmd.Parameters.AddWithValue("@ROLL_NO", textBox1.Text);
                 oCmd.Parameters.AddWithValue("@FROM", fromDt0.ToString("dd-MMM-yyyy"));

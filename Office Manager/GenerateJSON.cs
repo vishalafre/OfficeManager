@@ -28,15 +28,15 @@ namespace Office_Manager
         }
 
         private void button1_Click(object sender, EventArgs e)
-        {
+        {/*
             if(!textBox1.Text.Contains("-"))
             {
                 MessageBox.Show("Please provide valid Bill IDs");
                 return;
-            }
+            }*/
 
             String data = textBox1.Text.ToUpper();
-            String input = "(";
+            /*String input = "(";
 
             String[] parts;
             if (data.Contains(","))
@@ -47,12 +47,61 @@ namespace Office_Manager
                 {
                     if (s.Contains(":"))
                     {
+                        TallyXML.firm = firm;
                         string p1 = TallyXML.parseBillIds(s);
                         input += p1;
                     }
                     else
                     {
-                        input += "'" + s.Trim() + "', ";
+                        int n;
+                        if (Int32.TryParse(s.Trim(), out n))
+                        {
+                            string billNo = s.Trim();
+                            string sDate = DateTime.Now.ToString();
+                            DateTime datevalue = (Convert.ToDateTime(sDate.ToString()));
+                            int month = Int32.Parse(datevalue.Month.ToString());
+
+                            int year = Int32.Parse(datevalue.Year.ToString().Substring(datevalue.Year.ToString().Length - 2)) - 1;
+                            if (month > 3)
+                            {
+                                year++;
+                            }
+
+                            string yearInit = year + "-" + (year + 1);
+
+                            String compInit;
+                            switch (firm.Substring(0, 1))
+                            {
+                                case "A":
+                                    compInit = "AE";
+                                    break;
+
+                                case "E":
+                                    compInit = "ET";
+                                    break;
+
+                                default:
+                                    compInit = "XX";
+                                    break;
+                            }
+
+                            String billId = "" + billNo;
+                            if ((billNo + "").Length == 1)
+                            {
+                                billId = "00" + billNo;
+                            }
+                            else if ((billNo + "").Length == 2)
+                            {
+                                billId = "0" + billNo;
+                            }
+
+                            string invNo = compInit + "/" + yearInit + "/" + billId;
+                            input += "'" + invNo + "', ";
+                        }
+                        else
+                        {
+                            input += "'" + s.Trim() + "', ";
+                        }
                     }
                 }
             }
@@ -60,6 +109,7 @@ namespace Office_Manager
             {
                 if (data.Contains(":"))
                 {
+                    TallyXML.firm = firm;
                     string p1 = TallyXML.parseBillIds(data);
                     input += p1;
                 }
@@ -68,11 +118,12 @@ namespace Office_Manager
                     input += "'" + data.Trim() + "', ";
                 }
             }
-            input = input.Substring(0, input.Length - 2) + ")";
+            input = input.Substring(0, input.Length - 2) + ")";*/
+            string input = formatBillIds(data);
 
             int count = 0;
             string output = "{\n" +
-                        "\t\"version\":\"1.0.1118\",\n" +
+                        "\t\"version\":\"1.0.0621\",\n" +
                         "\t\t\"billLists\":[";
             SqlConnection con = new SqlConnection("Data Source=(localdb)\\VISHAL;AttachDbFilename=|DataDirectory|\\Files\\DBQuery.mdf;Integrated Security=True");
 
@@ -155,6 +206,7 @@ namespace Office_Manager
                         "\t\t\t\"userGstin\":\"" + userGst + "\",\n" +
                         "\t\t\t\"supplyType\":\"O\",\n" +
                         "\t\t\t\"subSupplyType\":1,\n" +
+                        "\t\t\t\"subSupplyDesc\":\"\",\n" +
                         "\t\t\t\"docType\":\"INV\",\n" +
                         "\t\t\t\"docNo\":\"" + billNo + "\",\n" +
                         "\t\t\t\"docDate\":\"" + billDt + "\",\n" +
@@ -223,6 +275,149 @@ namespace Office_Manager
             {
                 MessageBox.Show("Invalid Bill ID(s)");
             }
+        }
+
+        private string formatBillIds(string data)
+        {
+            String input = "(";
+            Boolean singleBill = false;
+
+            String[] parts;
+            if (data.Contains(","))
+            {
+                parts = data.Split(',');
+
+                foreach (String s in parts)
+                {
+                    if (s.Contains(":"))
+                    {
+                        string p1 = TallyXML.parseBillIds(s);
+                        input += p1;
+                    }
+                    else
+                    {
+                        int n;
+                        if (Int32.TryParse(s.Trim(), out n))
+                        {
+                            string billNo = s.Trim();
+                            string sDate = DateTime.Now.ToString();
+                            DateTime datevalue = (Convert.ToDateTime(sDate.ToString()));
+                            int month = Int32.Parse(datevalue.Month.ToString());
+
+                            int year = Int32.Parse(datevalue.Year.ToString().Substring(datevalue.Year.ToString().Length - 2)) - 1;
+                            if (month > 3)
+                            {
+                                year++;
+                            }
+
+                            string yearInit = year + "-" + (year + 1);
+
+                            String compInit;
+                            switch (firm.Substring(0, 1))
+                            {
+                                case "A":
+                                    compInit = "AE";
+                                    break;
+
+                                case "E":
+                                    compInit = "ET";
+                                    break;
+
+                                default:
+                                    compInit = "XX";
+                                    break;
+                            }
+
+                            String billId = "" + billNo;
+                            if ((billNo + "").Length == 1)
+                            {
+                                billId = "00" + billNo;
+                            }
+                            else if ((billNo + "").Length == 2)
+                            {
+                                billId = "0" + billNo;
+                            }
+
+                            string invNo = compInit + "/" + yearInit + "/" + billId;
+                            input += "'" + invNo + "', ";
+                        }
+                        else
+                        {
+                            input += "'" + s.Trim() + "', ";
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (data.Contains(":"))
+                {
+                    string p1 = TallyXML.parseBillIds(data);
+                    input += p1;
+                }
+                else if (data.Contains(","))
+                {
+                    input += "'" + data.Trim() + "', ";
+                }
+                else
+                {
+                    singleBill = true;
+
+                    string billNo = data.Trim();
+                    string sDate = DateTime.Now.ToString();
+                    DateTime datevalue = (Convert.ToDateTime(sDate.ToString()));
+                    int month = Int32.Parse(datevalue.Month.ToString());
+
+                    int year = Int32.Parse(datevalue.Year.ToString().Substring(datevalue.Year.ToString().Length - 2)) - 1;
+                    if (month > 3)
+                    {
+                        year++;
+                    }
+
+                    string yearInit = year + "-" + (year + 1);
+
+                    String compInit;
+                    switch (firm.Substring(0, 1))
+                    {
+                        case "A":
+                            compInit = "AE";
+                            break;
+
+                        case "E":
+                            compInit = "ET";
+                            break;
+
+                        default:
+                            compInit = "XX";
+                            break;
+                    }
+
+                    String billId = "" + billNo;
+                    if ((billNo + "").Length == 1)
+                    {
+                        billId = "00" + billNo;
+                    }
+                    else if ((billNo + "").Length == 2)
+                    {
+                        billId = "0" + billNo;
+                    }
+
+                    string invNo = compInit + "/" + yearInit + "/" + billId;
+                    input += "'" + invNo + "'";
+                }
+            }
+
+            string output;
+            if (singleBill)
+            {
+                output = input + ")";
+            }
+            else
+            {
+                output = input.Substring(0, input.Length - 2) + ")";
+            }
+
+            return output;
         }
     }
 }

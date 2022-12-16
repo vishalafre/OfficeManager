@@ -34,6 +34,8 @@ namespace Office_Manager
         string company;
 		byte[] lPath;
 
+        private bool exitClicked;
+
         public static Dictionary<string, string> eWayBillIds = new Dictionary<string, string>();
         public InvList(String cName, byte[] logoPath)
         {
@@ -979,8 +981,58 @@ namespace Office_Manager
             targetForm.Show();
         }
 
+        private void fillCredentials(IWebDriver driver, string username, string password)
+        {
+            if(exitClicked)
+            {
+                return;
+            }
+            bool error = false;
+            driver.FindElement(By.XPath("//*[@id=\"txt_username\"]")).SendKeys(username);
+            driver.FindElement(By.Id("txt_password")).SendKeys(password);
+            driver.FindElement(By.Id("txtCaptcha")).SendKeys("");
+
+            // Exit click
+
+            WebDriverWait waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
+            try
+            {
+                waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"A1\"]|//*[@id=\"Div2FAWrn\"]/div/div/div[1]/button")));
+                if(driver.FindElement(By.XPath("//*[@id=\"Div2FAWrn\"]/div/div/div[1]/button")) != null)
+                {
+                    return;
+                }
+                error = false;
+            }
+            catch
+            {
+                error = true;
+                try
+                {
+                    driver.SwitchTo().Alert().Accept();
+                }
+                catch
+                {
+                    error = true;
+                }
+                fillCredentials(driver, username, password);
+            }
+
+            try
+            {
+                driver.FindElement(By.Id("A1")).Click();
+                error = false;
+            }
+            catch
+            {
+                error = true;
+            }
+            exitClicked = true;
+        }
+
         private void pictureBox2_Click(object sender, EventArgs e)
         {
+            exitClicked = false;
             eWayBillIds = new Dictionary<string, string>();
 
             con.Open();
@@ -1014,16 +1066,14 @@ namespace Office_Manager
 
                 // fill username & password
 
-                driver.FindElement(By.XPath("//*[@id=\"txt_username\"]")).SendKeys(username);
-                driver.FindElement(By.Id("txt_password")).SendKeys(password);
-                driver.FindElement(By.Id("txtCaptcha")).SendKeys("");
+                fillCredentials(driver, username, password);
 
-                // Exit click
+                // Dismiss alert
 
                 WebDriverWait waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
-                waitForElement.Until(ExpectedConditions.ElementIsVisible(By.Id("A1")));
 
-                driver.FindElement(By.Id("A1")).Click();
+                waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"Div2FAWrn\"]/div/div/div[1]/button")));
+                driver.FindElement(By.XPath("//*[@id=\"Div2FAWrn\"]/div/div/div[1]/button")).Click();
 
                 // E-Waybill click
 
@@ -1244,20 +1294,16 @@ namespace Office_Manager
 
                     // fill username & password
 
-                    driver.FindElement(By.XPath("//*[@id=\"txt_username\"]")).SendKeys(username);
-                    driver.FindElement(By.Id("txt_password")).SendKeys(password);
-                    driver.FindElement(By.Id("txtCaptcha")).SendKeys("");
+                    fillCredentials(driver, username, password);
 
-                    // Exit click
+                    // Dismiss alert
 
                     WebDriverWait waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
-                        waitForElement.Until(ExpectedConditions.ElementIsVisible(By.Id("A1")));
 
-                        driver.FindElement(By.Id("A1")).Click();
+                    waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"Div2FAWrn\"]/div/div/div[1]/button")));
+                    driver.FindElement(By.XPath("//*[@id=\"Div2FAWrn\"]/div/div/div[1]/button")).Click();
 
-                    //driver.FindElement(By.ClassName("glyphicon-home")).Click();
-
-                    foreach(string billId in eWayBillIds.Keys)
+                    foreach (string billId in eWayBillIds.Keys)
                     {
                         // E-Waybill click
 

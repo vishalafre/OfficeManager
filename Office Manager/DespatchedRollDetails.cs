@@ -120,7 +120,7 @@ namespace Office_Manager
             fromDate = "01-APR-" + (fyYear - 1);
             toDate = "31-MAR-" + fyYear;
 
-            query = "select (select tech_name from product where pid = quality) quality, txn_date, isnull((select w_name from weaver where wid = weaver), 'Old Roll') weaver, re.mtr, (select g_name from godown where gid = godown) godown from roll_entry re, roll r, ROLL_CONTENT rc where r.roll_no = rc.roll_no and rc.entry_id = re.entry_id and RE.FIRM = '"+ firm +"' and despatch_date BETWEEN @FROM_DT AND @TO_DT AND re.ENTRY_ID IN (SELECT ENTRY_ID FROM ROLL_CONTENT WHERE ROLL_NO = @ROLL_NO)";
+            query = "select (select tech_name from product where pid = quality) quality, txn_date, isnull((select w_name from weaver where wid = weaver), 'Old Roll') weaver, re.mtr, (select g_name from godown where gid = godown) godown from roll_entry re, roll r, ROLL_CONTENT rc where r.roll_no = rc.roll_no and rc.entry_id = re.entry_id and RE.FIRM = '"+ firm + "' and despatch_date BETWEEN @FROM_DT AND @TO_DT AND re.ENTRY_ID IN (SELECT ENTRY_ID FROM ROLL_CONTENT WHERE ROLL_NO = @ROLL_NO) AND DATEADD(YEAR,1,TXN_DATE) > GETDATE()";
             oCmd = new SqlCommand(query, con);
             oCmd.Parameters.AddWithValue("@ROLL_NO", rollNo);
             oCmd.Parameters.AddWithValue("@FROM_DT", fromDate);
@@ -195,18 +195,9 @@ namespace Office_Manager
         {
             con.Open();
 
-            List<String> dates = new List<string>();
-            List<String> qlts = new List<string>();
-            List<String> wvrs = new List<string>();
-            List<String> mtrs = new List<string>();
-            List<String> gdns = new List<string>();
-            List<String> rollNos = new List<string>();
-
-            string mWeaver = ((KeyValuePair<string, string>)((ComboBox) Controls.Find("weaver" + "0", true)[0]).SelectedItem).Key;
-
             // Delete FROM SUPPLY_CONE
 
-            SqlCommand cmd = new SqlCommand("delete from SUPPLY_CONE WHERE SUPPLY_TO IN (SELECT ENTRY_ID FROM ROLL_content WHERE roll_no = @ROLL_NO) AND SUPPLY_TO_TYPE = 'R' AND TXN_DATE BETWEEN @FROM_DT AND @TO_DT", con);
+            SqlCommand cmd = new SqlCommand("delete from SUPPLY_CONE WHERE SUPPLY_TO IN (SELECT ENTRY_ID FROM ROLL_content WHERE roll_no = @ROLL_NO) AND DATEADD(YEAR,1,TXN_DATE) > GETDATE() AND SUPPLY_TO_TYPE = 'R' AND TXN_DATE BETWEEN @FROM_DT AND @TO_DT", con);
             cmd.Parameters.AddWithValue("@ROLL_NO", rollNo);
             cmd.Parameters.AddWithValue("@FROM_DT", fromDate);
             cmd.Parameters.AddWithValue("@TO_DT", toDate);
@@ -214,7 +205,7 @@ namespace Office_Manager
 
             // Delete FROM SUPPLY_BEAM
 
-            cmd = new SqlCommand("delete from SUPPLY_BEAM WHERE SUPPLY_TO IN (SELECT ENTRY_ID FROM ROLL_content WHERE roll_no = @ROLL_NO) AND SUPPLY_TO_TYPE = 'R' AND TXN_DATE BETWEEN @FROM_DT AND @TO_DT", con);
+            cmd = new SqlCommand("delete from SUPPLY_BEAM WHERE SUPPLY_TO IN (SELECT ENTRY_ID FROM ROLL_content WHERE roll_no = @ROLL_NO) AND DATEADD(YEAR,1,TXN_DATE) > GETDATE() AND SUPPLY_TO_TYPE = 'R' AND TXN_DATE BETWEEN @FROM_DT AND @TO_DT", con);
             cmd.Parameters.AddWithValue("@ROLL_NO", rollNo);
             cmd.Parameters.AddWithValue("@FROM_DT", fromDate);
             cmd.Parameters.AddWithValue("@TO_DT", toDate);
@@ -227,7 +218,7 @@ namespace Office_Manager
             {
                 string weaver = ((KeyValuePair<string, string>)((ComboBox) Controls.Find("weaver" + i, true)[0]).SelectedItem).Key;
 
-                cmd = new SqlCommand("UPDATE ROLL_ENTRY SET TXN_DATE = @TXN_DATE, GODOWN = @GODOWN, QUALITY = @QUALITY, WEAVER = @WEAVER WHERE TXN_DATE BETWEEN @FROM_DT AND @TO_DT AND ENTRY_ID = (SELECT TOP 1 ENTRY_ID FROM (SELECT TOP " + (count - i) +" ENTRY_ID FROM ROLL_CONTENT WHERE ROLL_NO = @ROLL_NO ORDER BY ENTRY_ID DESC) T ORDER BY ENTRY_ID)", con);
+                cmd = new SqlCommand("UPDATE ROLL_ENTRY SET TXN_DATE = @TXN_DATE, GODOWN = @GODOWN, QUALITY = @QUALITY, WEAVER = @WEAVER WHERE TXN_DATE BETWEEN @FROM_DT AND @TO_DT AND DATEADD(YEAR,1,TXN_DATE) > GETDATE() AND ENTRY_ID = (SELECT TOP 1 ENTRY_ID FROM (SELECT TOP " + (count - i) +" ENTRY_ID FROM ROLL_CONTENT WHERE ROLL_NO = @ROLL_NO ORDER BY ENTRY_ID DESC) T ORDER BY ENTRY_ID)", con);
                 string date = ((DateTimePicker) Controls.Find("date" + i, true)[0]).Value.ToString("dd-MMM-yyyy");
                 string quality = ((KeyValuePair<string, string>)((ComboBox) Controls.Find("quality", true)[0]).SelectedItem).Key;
 

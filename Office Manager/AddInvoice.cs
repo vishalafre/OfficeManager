@@ -54,6 +54,7 @@ namespace Office_Manager
         string mAgent;
         string mRate;
         string mPymtDeadline;
+        string mDiscount;
 
         int txnFlag;        //1: update     //2: save
 
@@ -74,7 +75,7 @@ namespace Office_Manager
             invoiceNo.Text = invNoFromList;
         }
 
-        public AddInvoice(string company, string customer, string product, string agent, string rate, string pymtDeadline)
+        public AddInvoice(string company, string customer, string product, string agent, string rate, string pymtDeadline, string disc)
         {
             InitializeComponent();
             this.company = company;
@@ -83,6 +84,7 @@ namespace Office_Manager
             mAgent = agent;
             mRate = rate;
             mPymtDeadline = pymtDeadline;
+            mDiscount = disc;
         }
 
         class NumberToWords
@@ -1140,6 +1142,7 @@ namespace Office_Manager
                     con.Close();
 
                     uploadRollNo();
+                    insertRolls();
                 }
 
                 button6.Text = "Preview";
@@ -1683,7 +1686,15 @@ namespace Office_Manager
             query = "select AID, A_NAME from AGENT where firm = @FIRM";
             oCmd = new SqlCommand(query, con);
             oCmd.Parameters.AddWithValue("@FIRM", company);
-            con.Open();
+
+            try
+            {
+                con.Open();
+            }
+            catch
+            {
+
+            }
 
             Dictionary<string, string> agents = new Dictionary<string, string>();
             using (SqlDataReader oReader = oCmd.ExecuteReader())
@@ -1925,6 +1936,7 @@ namespace Office_Manager
                     cRate.Text = mRate;
 
                     dueDtLmt.Text = mPymtDeadline;
+                    disount.Text = mDiscount;
                 }
             }
             isLoading = false;
@@ -1933,7 +1945,7 @@ namespace Office_Manager
         private void setBillNo(string billDt)
         {
             int billNo = 1;
-            string query = "SELECT TOP 1 CAST((SELECT TOP 1 * FROM SPLIT(BILL_ID, '/') ORDER BY 1) AS INT) +1 AS MAX_VALUE FROM BILL where firm = @FIRM and bill_dt between (cast(concat('01-apr-', (select case sign(month(@BILL_DT) - 3) when 1 then cast(SUBSTRING(cast(YEAR(@BILL_DT) as varchar), LEN(cast(YEAR(@BILL_DT) as varchar)) - 1, 2) as int) else cast(SUBSTRING(cast(YEAR(@BILL_DT) as varchar), LEN(cast(YEAR(@BILL_DT) as varchar)) - 1, 2) - 1 as int) end)) as date)) and (cast(concat('31-mar-', (select case sign(month(@BILL_DT) - 3) when 1 then cast(SUBSTRING(cast(YEAR(@BILL_DT) as varchar), LEN(cast(YEAR(@BILL_DT) as varchar)) - 1, 2) + 1 as int) else cast(SUBSTRING(cast(YEAR(@BILL_DT) as varchar), LEN(cast(YEAR(@BILL_DT) as varchar)) - 1, 2) as int) end)) as date)) ORDER BY 1 DESC";
+            string query = "SELECT TOP 1 CAST(REVERSE(LEFT(REVERSE(BILL_ID), CHARINDEX('/', REVERSE(BILL_ID)) - 1)) AS INT) + 1 AS MAX_VALUE FROM BILL where firm = @FIRM and bill_dt between (cast(concat('01-apr-', (select case sign(month(@BILL_DT) - 3) when 1 then cast(SUBSTRING(cast(YEAR(@BILL_DT) as varchar), LEN(cast(YEAR(@BILL_DT) as varchar)) - 1, 2) as int) else cast(SUBSTRING(cast(YEAR(@BILL_DT) as varchar), LEN(cast(YEAR(@BILL_DT) as varchar)) - 1, 2) - 1 as int) end)) as date)) and (cast(concat('31-mar-', (select case sign(month(@BILL_DT) - 3) when 1 then cast(SUBSTRING(cast(YEAR(@BILL_DT) as varchar), LEN(cast(YEAR(@BILL_DT) as varchar)) - 1, 2) + 1 as int) else cast(SUBSTRING(cast(YEAR(@BILL_DT) as varchar), LEN(cast(YEAR(@BILL_DT) as varchar)) - 1, 2) as int) end)) as date)) ORDER BY 1 DESC";
             SqlCommand oCmd = new SqlCommand(query, con);
             oCmd.Parameters.AddWithValue("@FIRM", company);
             oCmd.Parameters.AddWithValue("@BILL_DT", billDt);
@@ -1947,7 +1959,7 @@ namespace Office_Manager
             }
             con.Close();
 
-            String sDate = invoiceDt.Value.ToString();
+            string sDate = invoiceDt.Value.ToString();
             DateTime datevalue = (Convert.ToDateTime(sDate.ToString()));
             int month = Int32.Parse(datevalue.Month.ToString());
 
@@ -1959,9 +1971,7 @@ namespace Office_Manager
 
             string yearInit = year + "-" + (year + 1);
 
-            int prefix = year - 17;
-
-            String compInit = "";
+            String compInit;
             switch (company.Substring(0, 1))
             {
                 case "A":
@@ -1973,7 +1983,7 @@ namespace Office_Manager
                     break;
 
                 default:
-                    compInit = "XX";
+                    compInit = "GST";
                     break;
             }
 
@@ -2323,8 +2333,14 @@ namespace Office_Manager
             {
                 using (WebClient client = new WebClient())
                 {
-                    client.Credentials = new NetworkCredential("u220970540", "Mycomputer12@");
-                    client.UploadFile("ftp://files141.hostinger.in/office-manager/roll_no.txt", WebRequestMethods.Ftp.UploadFile, @"C:\Invoices\rollNo.txt");
+                    try
+                    {
+                        client.Credentials = new NetworkCredential("u220970540", "Mycomputer12@");
+                        client.UploadFile("ftp://u220970540@217.21.93.152/domains/afrestudios.com/public_html/office-manager/roll_no.txt", WebRequestMethods.Ftp.UploadFile, @"C:\Invoices\rollNo.txt");
+                    } catch (Exception e)
+                    {
+                        String s = e.Message;
+                    }
                 }
             });
 
@@ -2410,12 +2426,71 @@ namespace Office_Manager
                 con.Close();
 
                 uploadRollNo();
+                insertRolls();
             }
 
             updateBtn.Text = "Update";
             updateBtn.Enabled = true;
             button6.Enabled = true;
             deleteBtn.Enabled = true;
+        }
+
+        private async void insertRolls()
+        {
+            await Task.Run(() =>
+            {
+                SqlConnection con1 = new SqlConnection("Data Source=(localdb)\\VISHAL;AttachDbFilename=|DataDirectory|\\Files\\DBQuery.mdf;Integrated Security=True");
+                con1.Open();
+
+                string query1 = "SELECT (SELECT TECH_NAME FROM PRODUCT WHERE PID = RE.QUALITY) QUALITY, TXN_DATE, (SELECT W_NAME FROM WEAVER WHERE WID = RE.WEAVER) WEAVER, ROLL_NO, MTR, " +
+                "(SELECT G_NAME FROM GODOWN WHERE GID = RE.godown) GODOWN FROM ROLL_ENTRY RE WHERE DESPATCHED = 'N' ORDER BY 1, 2";
+                SqlCommand oCmd1 = new SqlCommand(query1, con1);
+
+                string data = "";
+
+                using (SqlDataReader oReader = oCmd1.ExecuteReader())
+                {
+                    while (oReader.Read())
+                    {
+                        if(!data.Equals(""))
+                        {
+                            data += "♣";
+                        }
+                        string quality = oReader["QUALITY"].ToString();
+                        int mtr = (int) Double.Parse(oReader["MTR"].ToString());
+                        DateTime date = (DateTime)oReader["TXN_DATE"];
+                        string txnDate = date.ToString("yyyy-MM-dd");
+                        string rollNo = oReader["ROLL_NO"].ToString();
+                        string weaver = oReader["WEAVER"].ToString();
+                        string godown = oReader["GODOWN"].ToString();
+
+                        data += (quality + "•" + rollNo + "•" + mtr + "•" + txnDate + "•" + weaver + "•" + godown);
+                    }
+                }
+
+                if (!data.Equals(""))
+                {
+                    string URI = "https://www.afrestudios.com/office-manager/insert_rolls.php";
+
+                    using (WebClient client = new WebClient())
+                    {
+                        var reqparm = new System.Collections.Specialized.NameValueCollection();
+                        reqparm.Add("data", data);
+
+                        try
+                        {
+                            byte[] responsebytes = client.UploadValues(URI, "POST", reqparm);
+                            string resp = Encoding.UTF8.GetString(responsebytes);
+                            resp += " ";
+                        }
+                        catch
+                        {
+
+                        }
+                    }
+                }
+                con1.Close();
+            });
         }
 
         private Boolean updateOrder()
@@ -2542,6 +2617,35 @@ namespace Office_Manager
 
                     if (!orderId.Equals(""))
                     {
+                        if (true)   // response.Equals("SUCCESS")
+                        {
+                            SqlCommand cmd = new SqlCommand("insert into ORDER_SUPPLY (ORDER_ID, TXN_DATE, DEL_QTY, BILL_ID) values (@ORDER_ID, @TXN_DATE, @DEL_QTY, @BILL_ID)", con1);
+                            cmd.Parameters.AddWithValue("@ORDER_ID", orderId);
+                            cmd.Parameters.AddWithValue("@TXN_DATE", invoiceDt.Value.ToString("dd-MMM-yyyy"));
+                            cmd.Parameters.AddWithValue("@DEL_QTY", itemMeters[product][rate]);
+                            cmd.Parameters.AddWithValue("@BILL_ID", invoiceNo.Text);
+                            cmd.ExecuteNonQuery();
+                        }
+                        else
+                        {
+                            MessageBox.Show("No connection to network");
+                            con1.Close();
+                            return false;
+                        }
+
+                        query1 = "select MAX(OS_ID) OS_ID FROM ORDER_SUPPLY";
+                        oCmd1 = new SqlCommand(query1, con1);
+
+                        int osId = 0;
+
+                        using (SqlDataReader oReader = oCmd1.ExecuteReader())
+                        {
+                            if (oReader.Read())
+                            {
+                                osId = Int32.Parse(oReader["OS_ID"].ToString()) + 1;
+                            }
+                        }
+
                         // insert into order supply
 
                         URI = "http://www.afrestudios.com/office-manager/insert_order_supply.php";
@@ -2551,6 +2655,7 @@ namespace Office_Manager
                         {
                             var reqparm = new System.Collections.Specialized.NameValueCollection();
                             reqparm.Add("orderId", orderId);
+                            reqparm.Add("osId", osId + "");
                             reqparm.Add("txnDt", invoiceDt.Value.ToString("yyyy-MM-dd"));
                             reqparm.Add("delQty", itemMeters[product][rate] + "");
                             reqparm.Add("billId", invoiceNo.Text);
@@ -2574,22 +2679,6 @@ namespace Office_Manager
                                 MessageBox.Show("No connection to network");
                                 return false;
                             }
-                        }
-
-                        if (true)   // response.Equals("SUCCESS")
-                        {
-                            SqlCommand cmd = new SqlCommand("insert into ORDER_SUPPLY (ORDER_ID, TXN_DATE, DEL_QTY, BILL_ID) values (@ORDER_ID, @TXN_DATE, @DEL_QTY, @BILL_ID)", con1);
-                            cmd.Parameters.AddWithValue("@ORDER_ID", orderId);
-                            cmd.Parameters.AddWithValue("@TXN_DATE", invoiceDt.Value.ToString("dd-MMM-yyyy"));
-                            cmd.Parameters.AddWithValue("@DEL_QTY", itemMeters[product][rate]);
-                            cmd.Parameters.AddWithValue("@BILL_ID", invoiceNo.Text);
-                            cmd.ExecuteNonQuery();
-                        }
-                        else
-                        {
-                            MessageBox.Show("No connection to network");
-                            con1.Close();
-                            return false;
                         }
 
                         // check if order is completed
@@ -2805,17 +2894,40 @@ namespace Office_Manager
                 }
             }
 
+            DateTime today = invoiceDt.Value;
+            DateTime newGSTDate = new DateTime(2022, 1, 1);
+
+            Boolean isNewDate = today.CompareTo(newGSTDate) >= 0;
+
             if (cGstin.Substring(0, 2).Equals(bGstin.Substring(0, 2)))
             {
-                cgst.Text = "2.5";
-                sgst.Text = "2.5";
-                igst.Text = "0";
+                if (!isNewDate)
+                {
+                    cgst.Text = "2.5";
+                    sgst.Text = "2.5";
+                    igst.Text = "0";
+                }
+                else
+                {
+                    cgst.Text = "2.5";
+                    sgst.Text = "2.5";
+                    igst.Text = "0";
+                }
             }
             else
             {
-                cgst.Text = "0";
-                sgst.Text = "0";
-                igst.Text = "5";
+                if (!isNewDate)
+                {
+                    cgst.Text = "0";
+                    sgst.Text = "0";
+                    igst.Text = "5";
+                }
+                else
+                {
+                    cgst.Text = "0";
+                    sgst.Text = "0";
+                    igst.Text = "5";
+                }
             }
 
             con1.Close();

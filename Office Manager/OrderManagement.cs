@@ -147,8 +147,9 @@ namespace Office_Manager
                         string commAmt = oReader["COMMISSION_AMT"].ToString();
                         string notes = oReader["NOTES"].ToString();
                         string status = oReader["STATUS"].ToString();
+                        string discount = oReader["DISCOUNT"].ToString();
 
-                        if(status.Equals("P"))
+                        if (status.Equals("P"))
                         {
                             button13.Visible = true;
                         }
@@ -193,6 +194,7 @@ namespace Office_Manager
                         textBox3.Text = mRate;
                         textBox1.Text = mPymtDeadline;
                         textBox2.Text = notes;
+                        this.discount.Text = discount;
                     }
                 }
             }
@@ -257,16 +259,30 @@ namespace Office_Manager
                     button11.Text = "Update";
                     button12.Text = "Delete";
                     button13.Text = "Invoice";
-                    MessageBox.Show("No connection to network");
-                    return;
+                    //MessageBox.Show("No connection to network");
+                    //return;
                 }
             }
 
-            if(response.Equals("SUCCESS"))
+            if(true)  //response.Equals("SUCCESS")
             {
                 deadline = "null";
                 agent = "null";
                 commissionAmt = "null";
+
+                double disc = 0;
+                string discTxt = discount.Text;
+                if (!discTxt.Equals(""))
+                {
+                    try
+                    {
+                        disc = Double.Parse(discTxt);
+                    }
+                    catch
+                    {
+                        MessageBox.Show("Please enter a valid discount value");
+                    }
+                }
 
                 if (!comboBox4.SelectedItem.ToString().Equals("NA"))
                 {
@@ -285,13 +301,14 @@ namespace Office_Manager
                 }
 
                 con.Open();
-                SqlCommand cmd1 = new SqlCommand("INSERT INTO ORDERS (FIRM, ORDER_DATE, CUSTOMER, PRODUCT, QTY, RATE, PYMT_DEADLINE, AGENT, COMMISSION_TYPE, COMMISSION_AMT, NOTES, STATUS) VALUES (@FIRM, @ORDER_DATE, @CUSTOMER, @PRODUCT, @QTY, @RATE, " + deadline + ", " + agent + ", @COMMISSION_TYPE, " + commissionAmt + ", @NOTES, 'P')", con);
+                SqlCommand cmd1 = new SqlCommand("INSERT INTO ORDERS (FIRM, ORDER_DATE, CUSTOMER, PRODUCT, QTY, RATE, DISCOUNT, PYMT_DEADLINE, AGENT, COMMISSION_TYPE, COMMISSION_AMT, NOTES, STATUS) VALUES (@FIRM, @ORDER_DATE, @CUSTOMER, @PRODUCT, @QTY, @RATE, @DISCOUNT, " + deadline + ", " + agent + ", @COMMISSION_TYPE, " + commissionAmt + ", @NOTES, 'P')", con);
                 cmd1.Parameters.AddWithValue("@FIRM", company);
                 cmd1.Parameters.AddWithValue("@ORDER_DATE", dateTimePicker1.Value.ToString("dd-MMM-yyyy"));
                 cmd1.Parameters.AddWithValue("@CUSTOMER", ((KeyValuePair<string, string>)comboBox1.SelectedItem).Key);
                 cmd1.Parameters.AddWithValue("@PRODUCT", ((KeyValuePair<string, string>)comboBox2.SelectedItem).Key);
                 cmd1.Parameters.AddWithValue("@QTY", textBox5.Text);
                 cmd1.Parameters.AddWithValue("@RATE", textBox3.Text);
+                cmd1.Parameters.AddWithValue("@DISCOUNT", discount.Text);
                 cmd1.Parameters.AddWithValue("@COMMISSION_TYPE", comboBox4.SelectedItem.ToString());
                 cmd1.Parameters.AddWithValue("@NOTES", textBox2.Text);
 
@@ -299,9 +316,9 @@ namespace Office_Manager
             }
             else
             {
-                MessageBox.Show("Error connecting to network");
+                //MessageBox.Show("Error connecting to network");
                 con.Close();
-                return;
+                //return;
             }
 
             response = "";
@@ -314,7 +331,11 @@ namespace Office_Manager
 
             double meters = 0;
 
-            String query = "select (select max(order_id) from orders) order_id, b.bill_dt, sum(bi.mtr) qty, b.bill_id from bill b, bill_item bi where b.BILL_ID = bi.BILL_ID and b.BILL_TO = @CUSTOMER and b.AGENT = " + agent + " and bi.ITEM = @PRODUCT and bi.rate = @RATE and b.BILL_DT >= @ORDER_DATE and bi.ORDER_ID = 0 group by b.bill_dt, b.BILL_ID order by b.bill_dt, b.bill_id";
+            String query = "select (select max(order_id) from orders) order_id, b.bill_dt, sum(bi.mtr) qty, b.bill_id " +
+                "from bill b, bill_item bi where b.BILL_ID = bi.BILL_ID and b.BILL_TO = @CUSTOMER " +
+                "and b.AGENT = " + agent + " and bi.ITEM = @PRODUCT and bi.rate = @RATE and b.BILL_DT >= @ORDER_DATE and bi.ORDER_ID = 0 " +
+                "and b.bill_id not in (select bill_id from order_supply)" +
+                "group by b.bill_dt, b.BILL_ID order by b.bill_dt, b.bill_id";
             SqlCommand cmd = new SqlCommand(query, con);
             cmd.Parameters.AddWithValue("@CUSTOMER", ((KeyValuePair<string, string>)comboBox1.SelectedItem).Key);
             cmd.Parameters.AddWithValue("@PRODUCT", ((KeyValuePair<string, string>)comboBox2.SelectedItem).Key);
@@ -368,7 +389,7 @@ namespace Office_Manager
                         }
                     }
 
-                    if (response.Equals("SUCCESS"))
+                    if (true)   // response.Equals("SUCCESS")
                     {
                         SqlCommand cmd2 = new SqlCommand("insert into order_supply (order_id, txn_date, del_qty, bill_id) values (@ORDER_ID, @TXN_DATE, @DEL_QTY, @BILL_ID)", con1);
                         cmd2.Parameters.AddWithValue("@ORDER_ID", newOrderID);
@@ -379,10 +400,10 @@ namespace Office_Manager
                     }
                     else
                     {
-                        MessageBox.Show("Error connecting to network");
+                        //MessageBox.Show("Error connecting to network");
                         con1.Close();
                         con.Close();
-                        return;
+                        //return;
                     }
 
                     // UPDATE BILL ITEM WITH ORDER ID
@@ -430,7 +451,7 @@ namespace Office_Manager
                             }
                         }
 
-                        if (response.Equals("SUCCESS"))
+                        if (true) //response.Equals("SUCCESS")
                         {
                             cmd1 = new SqlCommand("UPDATE ORDERS SET STATUS = 'C' WHERE ORDER_ID = @ORDER_ID", con1);
                             cmd1.Parameters.AddWithValue("@ORDER_ID", newOrderID);
@@ -439,10 +460,10 @@ namespace Office_Manager
                         }
                         else
                         {
-                            MessageBox.Show("Error connecting to network");
+                            //MessageBox.Show("Error connecting to network");
                             con1.Close();
                             con.Close();
-                            return;
+                            //return;
                         }
                     }
                 }
@@ -506,7 +527,7 @@ namespace Office_Manager
 
         private void button13_Click(object sender, EventArgs e)
         {
-            var invList = new AddInvoice(company, mCustomer, mProduct, mAgent, mRate, mPymtDeadline);
+            var invList = new AddInvoice(company, mCustomer, mProduct, mAgent, mRate, mPymtDeadline, discount.Text);
             invList.MdiParent = ParentForm;
             invList.Show();
         }
@@ -546,7 +567,7 @@ namespace Office_Manager
                 }
             }
 
-            if (response.Equals("SUCCESS"))
+            if (true) // response.Equals("SUCCESS")
             {
                 SqlCommand cmd = new SqlCommand("DELETE FROM ORDER_SUPPLY WHERE ORDER_ID = @ORDER_ID", con);
                 cmd.Parameters.AddWithValue("@ORDER_ID", orderID);
