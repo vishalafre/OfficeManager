@@ -35,6 +35,7 @@ namespace Office_Manager
 		byte[] lPath;
 
         private bool exitClicked;
+        private bool fakeCaptchaSubmitted;
 
         public static Dictionary<string, string> eWayBillIds = new Dictionary<string, string>();
         public InvList(String cName, byte[] logoPath)
@@ -990,15 +991,25 @@ namespace Office_Manager
             bool error = false;
             driver.FindElement(By.XPath("//*[@id=\"txt_username\"]")).SendKeys(username);
             driver.FindElement(By.Id("txt_password")).SendKeys(password);
-            driver.FindElement(By.Id("txtCaptcha")).SendKeys("");
+
+            if (!fakeCaptchaSubmitted)
+            {
+                driver.FindElement(By.Id("txtCaptcha")).SendKeys("XXXXXX");
+                driver.FindElement(By.Id("btnLogin")).Click();
+                fakeCaptchaSubmitted = true;
+            }
+            else
+            {
+                driver.FindElement(By.Id("txtCaptcha")).SendKeys("");
+            }
 
             // Exit click
 
             WebDriverWait waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
             try
             {
-                waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"A1\"]|//*[@id=\"Div2FAWrn\"]/div/div/div[1]/button")));
-                if(driver.FindElement(By.XPath("//*[@id=\"Div2FAWrn\"]/div/div/div[1]/button")) != null)
+                waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"A1\"]|//*[@id=\"Div2FA\"]/div/div/div[3]/button")));
+                if(driver.FindElement(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")) != null)
                 {
                     return;
                 }
@@ -1052,15 +1063,17 @@ namespace Office_Manager
                 }
             }
 
-            ChromeDriverService chromeDriverService = ChromeDriverService.CreateDefaultService();
-            chromeDriverService.HideCommandPromptWindow = true;
+            IWebDriver driver = null;
+            try
+            {
+                ChromeDriverService chromeDriverService = ChromeDriverService.CreateDefaultService();
+                chromeDriverService.HideCommandPromptWindow = true;
 
-            ChromeOptions options = new ChromeOptions();
-            options.AddArguments("disable-infobars");
+                ChromeOptions options = new ChromeOptions();
+                options.AddArguments("disable-infobars");
 
-            IWebDriver driver = new ChromeDriver(chromeDriverService, options, TimeSpan.FromSeconds(6000));
+                driver = new ChromeDriver(chromeDriverService, options, TimeSpan.FromSeconds(6000));
 
-            try {
                 driver.Navigate().GoToUrl("https://ewaybillgst.gov.in/login.aspx");
                 driver.Manage().Window.Maximize();
 
@@ -1072,27 +1085,39 @@ namespace Office_Manager
 
                 WebDriverWait waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
 
-                waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"Div2FAWrn\"]/div/div/div[1]/button")));
-                driver.FindElement(By.XPath("//*[@id=\"Div2FAWrn\"]/div/div/div[1]/button")).Click();
+                waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")));
+                driver.FindElement(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")).Click();
 
                 // E-Waybill click
 
                 waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
-                waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"R10\"]/a")));
+                waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")));
 
-                driver.FindElement(By.XPath("//*[@id=\"R10\"]/a")).Click();
+            try
+            {
+                driver.FindElement(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")).Click();
+            } catch
+            {
+                Thread.Sleep(500);
+                driver.FindElement(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")).Click();
+
+                waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
+                waitForElement.Until(ExpectedConditions.InvisibilityOfElementLocated(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")));
+
+                driver.FindElement(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")).Click();
+            }
 
                 // Generate bulk click
 
                 waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
-                waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"R12\"]/a")));
+                waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R12\"]/a")));
 
-                driver.FindElement(By.XPath("//*[@id=\"R12\"]/a")).Click();
+                driver.FindElement(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R12\"]/a")).Click();
 
                 // upload file
 
                 waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
-                waitForElement.Until(ExpectedConditions.ElementIsVisible(By.Id("ctl00_ContentPlaceHolder1_FileUploadControl")));
+                waitForElement.Until(ExpectedConditions.ElementExists(By.Id("ctl00_ContentPlaceHolder1_FileUploadControl")));
 
                 driver.FindElement(By.Id("ctl00_ContentPlaceHolder1_FileUploadControl")).SendKeys(@"C:\Invoices\eWayBill.json");
 
@@ -1116,8 +1141,9 @@ namespace Office_Manager
 
                 waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
                 waitForElement.Until(ExpectedConditions.ElementIsVisible(By
-                    .XPath("//*[@id=\"ctl00_ContentPlaceHolder1_BulkEwayBills\"]/tbody/tr[2]")));
+                    .XPath("//*[@id=\"ctl00_ContentPlaceHolder1_BulkEwayBills\"]/tbody/tr")));
 
+                ScrollToBottom(driver);
                 driver.FindElement(By.Id("ctl00_ContentPlaceHolder1_btnGenerate")).Click();
 
                 // get E-waybill no for bill ids
@@ -1127,9 +1153,9 @@ namespace Office_Manager
                 int i = 1;
                 foreach (IWebElement element in rows)
                 {
-                    if (i > 1)
+                    if (i > 0)
                     {
-                        IWebElement billId = driver.FindElement(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_BulkEwayBills\"]/tbody/tr[" + i + "]/td[3]"));
+                        IWebElement billId = driver.FindElement(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_BulkEwayBills\"]/tbody/tr["+ i +"]/td[3]"));
                         IWebElement ewbNo = driver.FindElement(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_BulkEwayBills\"]/tbody/tr[" + i + "]/td[9]"));
 
                         if (ewbNo.Text.Length > 1)
@@ -1149,27 +1175,27 @@ namespace Office_Manager
                 }
                 con.Close();
 
-                // print weaybills
+                // print ewaybills : 611500129090
 
                 if (eWayBillIds.Count > 0)
                 {
-                    driver.FindElement(By.ClassName("glyphicon-home")).Click();
+                    driver.FindElement(By.Id("ctl00_headercont_lnk_home")).Click();
 
                     foreach (string billId in eWayBillIds.Keys)
                     {
                         // E-Waybill click
 
                         waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
-                        waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"R10\"]/a")));
+                        waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")));
 
-                        driver.FindElement(By.XPath("//*[@id=\"R10\"]/a")).Click();
+                        driver.FindElement(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")).Click();
 
                         // Print EWB click
 
                         waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
-                        waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"R15\"]/a")));
+                        waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R15\"]/a")));
 
-                        driver.FindElement(By.XPath("//*[@id=\"R15\"]/a")).Click();
+                        driver.FindElement(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R15\"]/a")).Click();
 
                         // Enter EWB no and click GO
 
@@ -1191,7 +1217,7 @@ namespace Office_Manager
                     }
 
                     waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
-                    waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"R10\"]/a")));
+                    waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")));
 
                     Thread.Sleep(4000);
                 }
@@ -1203,22 +1229,45 @@ namespace Office_Manager
 
                 MessageBox.Show("E-WayBill nos generated and updated. Take print out of bills then click on PRINT E-WAYBILLS to print the generated E-WayBills");
             }
-            catch
+            catch (Exception ex)
             {
                 try
                 {
-                    driver.Close();
-                    driver.Quit();
+                    if (driver != null)
+                    {
+                        driver.Close();
+                        driver.Quit();
+                    }
                 }
                 catch
                 {
 
                 }
-                MessageBox.Show("Something went wrong. Please try again");
+                MessageBox.Show(ex.Message);
             }
             con.Close();
         }
 
+        static void ScrollToBottom(IWebDriver driver)
+        {
+            IJavaScriptExecutor js = (IJavaScriptExecutor)driver;
+
+            // Get the document height
+            long documentHeight = (long)js.ExecuteScript("return Math.max( document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight );");
+
+            // Set the current scroll position to the top of the page
+            long currentPosition = 0;
+
+            // The height of the viewport
+            long windowHeight = (long)js.ExecuteScript("return window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;");
+
+            // Loop until we reach the bottom of the page
+            while (currentPosition + windowHeight < documentHeight)
+            {
+                // Scroll down by the height of the viewport
+                js.ExecuteScript($"window.scrollTo(0, {currentPosition += windowHeight});");
+            }
+        }
         private void pictureBox3_Click(object sender, EventArgs e)
         {
             eWayBillIds = new Dictionary<string, string>();
@@ -1300,24 +1349,36 @@ namespace Office_Manager
 
                     WebDriverWait waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
 
-                    waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"Div2FAWrn\"]/div/div/div[1]/button")));
-                    driver.FindElement(By.XPath("//*[@id=\"Div2FAWrn\"]/div/div/div[1]/button")).Click();
+                    waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")));
+                    driver.FindElement(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")).Click();
 
                     foreach (string billId in eWayBillIds.Keys)
                     {
                         // E-Waybill click
 
                         waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
-                        waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"R10\"]/a")));
+                        waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")));
 
-                        driver.FindElement(By.XPath("//*[@id=\"R10\"]/a")).Click();
+                        try
+                        {
+                            driver.FindElement(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")).Click();
+                        }
+                        catch
+                        {
+                            Thread.Sleep(500);
+                            driver.FindElement(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")).Click();
 
+                            waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
+                            waitForElement.Until(ExpectedConditions.InvisibilityOfElementLocated(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")));
+
+                            driver.FindElement(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")).Click();
+                        }
                         // Print EWB click
 
                         waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
-                        waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"R15\"]/a")));
+                        waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R15\"]/a")));
 
-                        driver.FindElement(By.XPath("//*[@id=\"R15\"]/a")).Click();
+                        driver.FindElement(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R15\"]/a")).Click();
 
                         // Enter EWB no and click GO
 
@@ -1334,30 +1395,33 @@ namespace Office_Manager
                         // Click Print
                         waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
                         waitForElement.Until(ExpectedConditions.ElementToBeClickable(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_printtr\"]/td/a[1]")));
-                        
+
                         js.ExecuteScript("document.getElementById('ctl00_ContentPlaceHolder1_printtr').getElementsByTagName('a')[0].click();", null);
                     }
 
                     waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
-                    waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"R10\"]/a")));
+                    waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")));
 
                     Thread.Sleep(4000);
                     driver.Close();
                     driver.Quit();
                 }
             }
-            catch
+            catch (Exception ex)
             {
                 try
                 {
-                    driver.Close();
-                    driver.Quit();
+                    if (driver != null)
+                    {
+                        driver.Close();
+                        driver.Quit();
+                    }
                 }
                 catch
                 {
 
                 }
-                MessageBox.Show("Something went wrong. Please try again");
+                MessageBox.Show(ex.Message);
             }
             con.Close();
         }
@@ -1387,6 +1451,11 @@ namespace Office_Manager
             var invList = new OrderManagement(company);
             invList.MdiParent = ParentForm;
             invList.Show();
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

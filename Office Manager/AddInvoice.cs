@@ -200,8 +200,8 @@ namespace Office_Manager
             };
             panel1.Controls.Add(addButton);
 
-            Label[] labelNames = { rollNoLbl, itemLbl, qtyLbl, mtrLbl, rateLbl, weightLbl, widthLbl, godownLbl };
-            TextBox[] textboxNames = { rollNo, qty, mtr, rate, weight, width };
+            Label[] labelNames = { rollNoLbl, itemLbl, qtyLbl, mtrLbl, rateLbl, /*weightLbl, widthLbl,*/ godownLbl };
+            TextBox[] textboxNames = { rollNo, qty, mtr, rate /*, weight, width*/ };
             ComboBox[] comboBoxes = { item, godown };
 
             for (int i = 0; i < labelNames.Length; i++)
@@ -269,7 +269,7 @@ namespace Office_Manager
                 Size = srcTb.Size,
                 TabStop = stop
             };
-            if (srcTb.Name.Equals("width"))
+            if (srcTb.Name.Equals("mtr"))
             {
                 tb.KeyDown += new KeyEventHandler(mtr_KeyDown);
             }
@@ -324,24 +324,24 @@ namespace Office_Manager
                 TextBox cMtr = (TextBox)panel1.Controls.Find("mtr" + i, true)[0];
                 TextBox cRate = (TextBox)panel1.Controls.Find("rate" + i, true)[0];
                 ComboBox cItem = (ComboBox)panel1.Controls.Find("item" + i, true)[0];
-                TextBox cWeight = (TextBox)panel1.Controls.Find("weight" + i, true)[0];
-                TextBox cWidth = (TextBox)panel1.Controls.Find("width" + i, true)[0];
+                //TextBox cWeight = (TextBox)panel1.Controls.Find("weight" + i, true)[0];
+                //TextBox cWidth = (TextBox)panel1.Controls.Find("width" + i, true)[0];
 
                 TextBox cRollPrev = (TextBox)panel1.Controls.Find("rollNo" + (i + 1), true)[0];
                 TextBox cQtyPrev = (TextBox)panel1.Controls.Find("qty" + (i + 1), true)[0];
                 TextBox cMtrPrev = (TextBox)panel1.Controls.Find("mtr" + (i + 1), true)[0];
                 TextBox cRatePrev = (TextBox)panel1.Controls.Find("rate" + (i + 1), true)[0];
                 ComboBox cItemPrev = (ComboBox)panel1.Controls.Find("item" + (i + 1), true)[0];
-                TextBox cWeightPrev = (TextBox)panel1.Controls.Find("weight" + (i + 1), true)[0];
-                TextBox cWidthPrev = (TextBox)panel1.Controls.Find("width" + (i + 1), true)[0];
+                //TextBox cWeightPrev = (TextBox)panel1.Controls.Find("weight" + (i + 1), true)[0];
+                //TextBox cWidthPrev = (TextBox)panel1.Controls.Find("width" + (i + 1), true)[0];
 
                 cRollPrev.Text = cRoll.Text;
                 cQtyPrev.Text = cQty.Text;
                 cMtrPrev.Text = cMtr.Text;
                 cRatePrev.Text = cRate.Text;
                 cItemPrev.SelectedIndex = cItem.SelectedIndex;
-                cWeightPrev.Text = cWeight.Text;
-                cWidthPrev.Text = cWidth.Text;
+                //cWeightPrev.Text = cWeight.Text;
+                //cWidthPrev.Text = cWidth.Text;
             }
 
             index++;
@@ -350,14 +350,14 @@ namespace Office_Manager
             TextBox cMtrCurr = (TextBox)panel1.Controls.Find("mtr" + index, true)[0];
             TextBox cRateCurr = (TextBox)panel1.Controls.Find("rate" + index, true)[0];
             ComboBox cItemCurr = (ComboBox)panel1.Controls.Find("item" + index, true)[0];
-            TextBox cWeightCurr = (TextBox)panel1.Controls.Find("weight" + index, true)[0];
-            TextBox cWidthCurr = (TextBox)panel1.Controls.Find("width" + index, true)[0];
+            //TextBox cWeightCurr = (TextBox)panel1.Controls.Find("weight" + index, true)[0];
+            //TextBox cWidthCurr = (TextBox)panel1.Controls.Find("width" + index, true)[0];
 
             cRollCurr.Text = "";
             cQtyCurr.Text = "";
             cMtrCurr.Text = "";
-            cWeightCurr.Text = "";
-            cWidthCurr.Text = "";
+            //cWeightCurr.Text = "";
+            //cWidthCurr.Text = "";
         }
 
         private void copyCellsForDelete(Button s)
@@ -1298,11 +1298,11 @@ namespace Office_Manager
                 TextBox cQty = (TextBox)panel1.Controls.Find("qty" + index, true)[0];
                 TextBox cMtr = (TextBox)panel1.Controls.Find("mtr" + index, true)[0];
                 TextBox cRate = (TextBox)panel1.Controls.Find("rate" + index, true)[0];
-                TextBox cWeight = (TextBox)panel1.Controls.Find("weight" + index, true)[0];
-                TextBox cWidth = (TextBox)panel1.Controls.Find("width" + index, true)[0];
+                //TextBox cWeight = (TextBox)panel1.Controls.Find("weight" + index, true)[0];
+                //TextBox cWidth = (TextBox)panel1.Controls.Find("width" + index, true)[0];
                 ComboBox cGodown = (ComboBox)panel1.Controls.Find("godown" + index, true)[0];
 
-                string cWt = cWeight.Text;
+                /*string cWt = cWeight.Text;
                 if (cWt.Equals(""))
                 {
                     cWt = "null";
@@ -1312,7 +1312,7 @@ namespace Office_Manager
                 if (cWd.Equals(""))
                 {
                     cWd = "null";
-                }
+                }*/
 
                 double meter = Double.Parse(cMtr.Text);
                 meters += meter;//
@@ -1336,6 +1336,9 @@ namespace Office_Manager
                 {
                     g = "null";
                 }
+
+                string cWt = "0";
+                string cWd = "0";
 
                 SqlCommand cmdBI = new SqlCommand("insert into BILL_ITEM values(@FIRM, " +
                     "@BILL_ID, @ROLL_NO, @ITEM, @RATE, @QTY, @MTR, @AMOUNT, " + cWt + ", " + cWd + ", @FY, @ORDER_ID, " + g + ")", con);
@@ -1589,7 +1592,12 @@ namespace Office_Manager
             lotNo.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             lotNo.AutoCompleteSource = AutoCompleteSource.CustomSource;
             label1.Text = company;
-            width.KeyDown += new KeyEventHandler(mtr_KeyDown);
+            mtr.KeyDown += new KeyEventHandler(mtr_KeyDown);
+
+            weightLbl.Visible = false;
+            weight.Visible = false;
+            widthLbl.Visible = false;
+            width.Visible = false;
 
             // Set bill to
 
@@ -1636,6 +1644,15 @@ namespace Office_Manager
                 godown.DataSource = new BindingSource(godowns, null);
                 godown.DisplayMember = "Value";
                 godown.ValueMember = "Key";
+            }
+
+            try
+            {
+                godown.SelectedIndex = 1;
+            } 
+            catch
+            {
+
             }
 
             // Get transport
@@ -1877,8 +1894,8 @@ namespace Office_Manager
                         TextBox cRate = (TextBox)panel1.Controls.Find("rate" + index, true)[0];
                         TextBox cQty = (TextBox)panel1.Controls.Find("qty" + index, true)[0];
                         TextBox cMtr = (TextBox)panel1.Controls.Find("mtr" + index, true)[0];
-                        TextBox cWeight = (TextBox)panel1.Controls.Find("weight" + index, true)[0];
-                        TextBox cWidth = (TextBox)panel1.Controls.Find("width" + index, true)[0];
+                        //TextBox cWeight = (TextBox)panel1.Controls.Find("weight" + index, true)[0];
+                        //TextBox cWidth = (TextBox)panel1.Controls.Find("width" + index, true)[0];
                         ComboBox cGodown = (ComboBox)panel1.Controls.Find("godown" + index, true)[0];
 
                         cItem.DataSource = new BindingSource(items, null);
@@ -1890,8 +1907,8 @@ namespace Office_Manager
                         cRate.Text = oReader1["RATE"].ToString();
                         cQty.Text = oReader1["QTY"].ToString();
                         cMtr.Text = oReader1["MTR"].ToString();
-                        cWeight.Text = oReader1["WEIGHT"].ToString();
-                        cWidth.Text = oReader1["WIDTH"].ToString();
+                        //cWeight.Text = oReader1["WEIGHT"].ToString();
+                        //cWidth.Text = oReader1["WIDTH"].ToString();
                         try
                         {
                             cGodown.SelectedIndex = godown.FindString(godowns[oReader1["GODOWN"].ToString()]);
@@ -2260,13 +2277,13 @@ namespace Office_Manager
                 TextBox cQty = (TextBox)panel1.Controls.Find("qty" + index, true)[0];
                 TextBox cMtr = (TextBox)panel1.Controls.Find("mtr" + index, true)[0];
                 TextBox cRate = (TextBox)panel1.Controls.Find("rate" + index, true)[0];
-                TextBox cWeight = (TextBox)panel1.Controls.Find("weight" + index, true)[0];
-                TextBox cWidth = (TextBox)panel1.Controls.Find("width" + index, true)[0];
+                //TextBox cWeight = (TextBox)panel1.Controls.Find("weight" + index, true)[0];
+                //TextBox cWidth = (TextBox)panel1.Controls.Find("width" + index, true)[0];
 
                 isValid = isValid && (!cRoll.Equals("")) && Int32.TryParse(cQty.Text, out i) &&
-                    Double.TryParse(cMtr.Text, out n) && Double.TryParse(cRate.Text, out n) &&
+                    Double.TryParse(cMtr.Text, out n) && Double.TryParse(cRate.Text, out n) /*&&
                     (Double.TryParse(cWeight.Text, out n) || (cWeight.Text.Equals("") && !cQty.Text.Equals("1"))) &&
-                    (Double.TryParse(cWidth.Text, out n) || (cWidth.Text.Equals("") && !cQty.Text.Equals("1")));
+                    (Double.TryParse(cWidth.Text, out n) || (cWidth.Text.Equals("") && !cQty.Text.Equals("1")))*/;
             }
 
             return isValid;
@@ -2333,8 +2350,15 @@ namespace Office_Manager
             {
                 using (WebClient client = new WebClient())
                 {
-                    client.Credentials = new NetworkCredential("u220970540", "Mycomputer12@");
-                    client.UploadFile("ftp://files141.hostinger.in/office-manager/roll_no.txt", WebRequestMethods.Ftp.UploadFile, @"C:\Invoices\rollNo.txt");
+                    try
+                    {
+                        client.Credentials = new NetworkCredential("u220970540", "Mycomputer12@");
+                        client.UploadFile("ftp://u220970540@217.21.93.152/domains/afrestudios.com/public_html/office-manager/roll_no.txt", WebRequestMethods.Ftp.UploadFile, @"C:\Invoices\rollNo.txt");
+                    }
+                    catch (Exception e)
+                    {
+                        String s = e.Message;
+                    }
                 }
             });
 
@@ -2446,12 +2470,12 @@ namespace Office_Manager
                 {
                     while (oReader.Read())
                     {
-                        if(!data.Equals(""))
+                        if (!data.Equals(""))
                         {
                             data += "♣";
                         }
                         string quality = oReader["QUALITY"].ToString();
-                        int mtr = (int) Double.Parse(oReader["MTR"].ToString());
+                        int mtr = (int)Double.Parse(oReader["MTR"].ToString());
                         DateTime date = (DateTime)oReader["TXN_DATE"];
                         string txnDate = date.ToString("yyyy-MM-dd");
                         string rollNo = oReader["ROLL_NO"].ToString();
@@ -2492,7 +2516,7 @@ namespace Office_Manager
             SqlConnection con1 = new SqlConnection("Data Source=(localdb)\\VISHAL;AttachDbFilename=|DataDirectory|\\Files\\DBQuery.mdf;Integrated Security=True");
             con1.Open();
 
-            string URI = "http://www.afrestudios.com/office-manager/mark_order_pending.php";
+            /*string URI = "http://www.afrestudios.com/office-manager/mark_order_pending.php";
 
             string response = "";
             using (WebClient client = new WebClient())
@@ -2520,7 +2544,7 @@ namespace Office_Manager
                     MessageBox.Show("No connection to network");
                     return false;
                 }
-            }
+            }*/
 
             if (true)   //response.Equals("SUCCESS")
             {
@@ -2534,9 +2558,9 @@ namespace Office_Manager
             }
             else
             {
-                MessageBox.Show(response);
+                /*MessageBox.Show(response);
                 con1.Close();
-                return false;
+                return false;*/
             }
 
             string agentFilter = "AND AGENT IS NULL";
@@ -2642,7 +2666,7 @@ namespace Office_Manager
 
                         // insert into order supply
 
-                        URI = "http://www.afrestudios.com/office-manager/insert_order_supply.php";
+                        /*URI = "http://www.afrestudios.com/office-manager/insert_order_supply.php";
 
                         response = "";
                         using (WebClient client = new WebClient())
@@ -2673,7 +2697,7 @@ namespace Office_Manager
                                 MessageBox.Show("No connection to network");
                                 return false;
                             }
-                        }
+                        }*/
 
                         // check if order is completed
 
@@ -2699,7 +2723,7 @@ namespace Office_Manager
 
                         if (completed)
                         {
-                            URI = "http://www.afrestudios.com/office-manager/mark_order_confirm.php";
+                            /*URI = "http://www.afrestudios.com/office-manager/mark_order_confirm.php";
 
                             response = "";
                             using (WebClient client = new WebClient())
@@ -2726,7 +2750,7 @@ namespace Office_Manager
                                     MessageBox.Show("No connection to network");
                                     return false;
                                 }
-                            }
+                            }*/
 
                             if (true)   //response.Equals("SUCCESS")
                             {
@@ -2736,9 +2760,9 @@ namespace Office_Manager
                             }
                             else
                             {
-                                MessageBox.Show("No connection to network");
+                                /*MessageBox.Show("No connection to network");
                                 con1.Close();
-                                return false;
+                                return false;*/
                             }
                         }
 
@@ -2937,6 +2961,11 @@ namespace Office_Manager
             var invList = new OrderManagement(company);
             invList.MdiParent = ParentForm;
             invList.Show();
+        }
+
+        private void width_TextChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }

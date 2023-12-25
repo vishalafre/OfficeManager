@@ -318,6 +318,7 @@
             this.width.Name = "width";
             this.width.Size = new System.Drawing.Size(63, 20);
             this.width.TabIndex = 16;
+            this.width.TextChanged += new System.EventHandler(this.width_TextChanged);
             // 
             // label16
             // 

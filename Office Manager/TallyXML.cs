@@ -15,6 +15,48 @@ namespace Office_Manager
     public partial class TallyXML : Form
     {
         public static string firm;
+
+        Dictionary<string, string> states = new Dictionary<string, string>
+        {
+            { "01", "Jammu & Kashmir" },
+            { "02", "Himachal Pradesh" },
+            { "03", "Punjab" },
+            { "04", "Chandigarh" },
+            { "05", "Uttarakhand" },
+            { "06", "Haryana" },
+            { "07", "Delhi" },
+            { "08", "Rajasthan" },
+            { "09", "Uttar Pradesh" },
+            { "10", "Bihar" },
+            { "11", "Sikkim" },
+            { "12", "Arunachal Pradesh" },
+            { "13", "Nagaland" },
+            { "14", "Manipur" },
+            { "15", "Mizoram" },
+            { "16", "Tripura" },
+            { "17", "Meghalaya" },
+            { "18", "Assam" },
+            { "19", "West Bengal" },
+            { "20", "Jharkhand" },
+            { "21", "Orissa" },
+            { "22", "Chhattisgarh" },
+            { "23", "Madhya Pradesh" },
+            { "24", "Gujarat" },
+            { "25", "Daman & Diu" },
+            { "26", "Dadra & Nagar Haveli" },
+            { "27", "Maharashtra" },
+            { "28", "Andhra Pradesh (Old)" },
+            { "29", "Karnataka" },
+            { "30", "Goa" },
+            { "31", "Lakshadweep" },
+            { "32", "Kerala" },
+            { "33", "Tamil Nadu" },
+            { "34", "Puducherry" },
+            { "35", "Andaman & Nicobar Islands" },
+            { "36", "Telengana" },
+            { "37", "Andhra Pradesh (New)" }
+        };
+
         public TallyXML(string company)
         {
             InitializeComponent();
@@ -170,7 +212,20 @@ namespace Office_Manager
 
             SqlConnection con = new SqlConnection("Data Source=(localdb)\\VISHAL;AttachDbFilename=|DataDirectory|\\Files\\DBQuery.mdf;Integrated Security=True");
 
-            string query = "select distinct cast(b.bill_dt as varchar) bill_dt, c1.GSTIN, c1.TALLY_LEDGER PARTY_NAME, b.BILL_ID, b.LR_NO, c2.CITY, b.bill_amt, CGST_AMT, SGST_AMT, IGST_AMT, (select sum(qty)/count(qty) from bill_item where bill_id = b.bill_id) cnt, (round(bill_amt,0) - (NET_AMT + CGST_AMT + SGST_AMT + IGST_AMT)) round_off, (select  stuff(list,1,1,'') from (select  ',' + cast(ROLL_NO as varchar(16)) as [text()] from BILL_ITEM WHERE BILL_ID = B.BILL_ID for xml path('')) as Sub(list)) ROLL_NO, i.TALLY_LEDGER ITEM_NAME, i.TALLY_UNIT, b.NET_AMT, (SELECT SUM(MTR) FROM BILL_ITEM WHERE BILL_ID = B.BILL_ID) mtr, T_NAME, LOT_NO, OS_CLASS, OS_LEDGER, LS_CLASS, LS_LEDGER, TC.CGST CL, TC.SGST SL, TC.IGST IL, TC.ROUND_OFF RL from bill b, customer c1, customer c2, bill_item bi, item i, transport t, tally_configure tc where b.transporter = t.tid and b.firm = tc.firm and b.bill_to = c1.cid and b.ship_to = c2.cid and b.bill_id = bi.bill_id and bi.ITEM = i.ITEM_ID and b.bill_id in " + output +" AND B.FIRM = @FIRM order by b.bill_id";
+            string query = "select distinct cast(b.bill_dt as varchar) bill_dt, c1.GSTIN, " +
+                "c1.TALLY_LEDGER PARTY_NAME, b.BILL_ID, b.LR_NO, c2.CITY, c2.GSTIN SUPPLY_GSTIN, b.bill_amt, " +
+                "CGST_AMT, SGST_AMT, IGST_AMT, (select sum(qty)/count(qty) from bill_item " +
+                "where bill_id = b.bill_id) cnt, " +
+                "(round(bill_amt,0) - (NET_AMT + CGST_AMT + SGST_AMT + IGST_AMT)) round_off, " +
+                "(select  stuff(list,1,1,'') from (select  ',' + cast(ROLL_NO as varchar(16)) as [text()] " +
+                "from BILL_ITEM WHERE BILL_ID = B.BILL_ID for xml path('')) as Sub(list)) ROLL_NO, " +
+                "i.TALLY_LEDGER ITEM_NAME, i.TALLY_UNIT, b.NET_AMT, (SELECT SUM(MTR) FROM BILL_ITEM " +
+                "WHERE BILL_ID = B.BILL_ID) mtr, T_NAME, LOT_NO, OS_CLASS, OS_LEDGER, LS_CLASS, LS_LEDGER, " +
+                "TC.CGST CL, TC.SGST SL, TC.IGST IL, TC.ROUND_OFF RL from bill b, customer c1, customer c2, " +
+                "bill_item bi, item i, transport t, tally_configure tc where b.transporter = t.tid " +
+                "and b.firm = tc.firm and b.bill_to = c1.cid and b.ship_to = c2.cid and " +
+                "b.bill_id = bi.bill_id and bi.ITEM = i.ITEM_ID and b.bill_id in " + output +" AND " +
+                "B.FIRM = @FIRM order by b.bill_id";
             SqlCommand oCmd = new SqlCommand(query, con);
             oCmd.Parameters.AddWithValue("@FIRM", firm);
             con.Open();
@@ -182,6 +237,11 @@ namespace Office_Manager
 
                     string date = oReader["BILL_DT"].ToString().Replace("-", "");
                     string gstIN = oReader["GSTIN"].ToString();
+                    string supplyGstIN = oReader["SUPPLY_GSTIN"].ToString();
+
+                    string toState = states[gstIN.Substring(0, 2)];
+                    string supplyState = states[supplyGstIN.Substring(0, 2)];
+
                     string partyName = oReader["PARTY_NAME"].ToString();
                     string billId = oReader["BILL_ID"].ToString();
                     string lrNo = oReader["LR_NO"].ToString();
@@ -235,11 +295,11 @@ namespace Office_Manager
 
                     if (Double.Parse(cgst) != 0)
                     {
-                        messages+= cgstFile.Replace("##--LOT_NO_HERE--##", lotNo).Replace("##--DATE_HERE--##", date).Replace("##--PARTY_GSTIN_HERE--##", gstIN).Replace("##--PARTY_NAME_HERE--##", partyName).Replace("##--BILL_NO_HERE--##", billId).Replace("##--BILL_AMT_HERE--##", billAmt).Replace("##--SGST_AMT_HERE--##", sgst).Replace("##--CGST_AMT_HERE--##", cgst).Replace("##--ITEM_NAME_HERE--##", itemName).Replace("##--RATE_HERE--##", rate + "").Replace("##--ITEM_UNIT_HERE--##", tallyUnit).Replace("##--NET_AMT_HERE--##", netAmt).Replace("##--ITEM_QTY_HERE--##", qty + "").Replace("##--ROUND_OFF_HERE--##", roundOff).Replace("##--SUPPLY_CITY_HERE--##", city).Replace("##--CLASS_NAME_HERE--##", saleClassLS).Replace("##--SGST_LEDGER_HERE--##", sgstLedger).Replace("##--CGST_LEDGER_HERE--##", cgstLedger).Replace("##--ROUND_OFF_LEDGER_HERE--##", roundLedger).Replace("##--SALE_LEDGER_HERE--##", saleLedgerLS);
+                        messages+= cgstFile.Replace("##--LOT_NO_HERE--##", lotNo).Replace("##--DATE_HERE--##", date).Replace("##--PARTY_GSTIN_HERE--##", gstIN).Replace("##--PARTY_NAME_HERE--##", partyName).Replace("##--BILL_NO_HERE--##", billId).Replace("##--BILL_AMT_HERE--##", billAmt).Replace("##--SGST_AMT_HERE--##", sgst).Replace("##--CGST_AMT_HERE--##", cgst).Replace("##--ITEM_NAME_HERE--##", itemName).Replace("##--RATE_HERE--##", rate + "").Replace("##--ITEM_UNIT_HERE--##", tallyUnit).Replace("##--NET_AMT_HERE--##", netAmt).Replace("##--ITEM_QTY_HERE--##", qty + "").Replace("##--ROUND_OFF_HERE--##", roundOff).Replace("##--SUPPLY_CITY_HERE--##", city).Replace("##--CLASS_NAME_HERE--##", saleClassLS).Replace("##--SGST_LEDGER_HERE--##", sgstLedger).Replace("##--CGST_LEDGER_HERE--##", cgstLedger).Replace("##--ROUND_OFF_LEDGER_HERE--##", roundLedger).Replace("##--SALE_LEDGER_HERE--##", saleLedgerLS).Replace("##--STATE_NAME_HERE--##", toState).Replace("##--POS_HERE--##", supplyState);
                     }
                     else
                     {
-                        messages += igstFile.Replace("##--DATE_HERE--##", date).Replace("##--PARTY_GSTIN_HERE--##", gstIN).Replace("##--PARTY_NAME_HERE--##", partyName).Replace("##--BILL_NO_HERE--##", billId).Replace("##--BILL_AMT_HERE--##", billAmt).Replace("##--IGST_AMT_HERE--##", igst).Replace("##--LR_NO_HERE--##", lrNo).Replace("##--ITEM_NAME_HERE--##", itemName).Replace("##--RATE_HERE--##", rate + "").Replace("##--ITEM_UNIT_HERE--##", tallyUnit).Replace("##--NET_AMT_HERE--##", netAmt).Replace("##--ITEM_QTY_HERE--##", qty + "").Replace("##--ROUND_OFF_HERE--##", roundOff).Replace("##--ROLL_NOS_HERE--##", rollNo).Replace("##--SUPPLY_CITY_HERE--##", city).Replace("##--CLASS_NAME_HERE--##", saleClassOS).Replace("##--ROUND_OFF_LEDGER_HERE--##", roundLedger).Replace("##--IGST_LEDGER_HERE--##", igstLedger).Replace("##--TRANSPORTER_HERE--##", tName).Replace("##--SALE_LEDGER_HERE--##", saleLedgerOS);
+                        messages += igstFile.Replace("##--DATE_HERE--##", date).Replace("##--PARTY_GSTIN_HERE--##", gstIN).Replace("##--PARTY_NAME_HERE--##", partyName).Replace("##--BILL_NO_HERE--##", billId).Replace("##--BILL_AMT_HERE--##", billAmt).Replace("##--IGST_AMT_HERE--##", igst).Replace("##--LR_NO_HERE--##", lrNo).Replace("##--ITEM_NAME_HERE--##", itemName).Replace("##--RATE_HERE--##", rate + "").Replace("##--ITEM_UNIT_HERE--##", tallyUnit).Replace("##--NET_AMT_HERE--##", netAmt).Replace("##--ITEM_QTY_HERE--##", qty + "").Replace("##--ROUND_OFF_HERE--##", roundOff).Replace("##--ROLL_NOS_HERE--##", rollNo).Replace("##--SUPPLY_CITY_HERE--##", city).Replace("##--CLASS_NAME_HERE--##", saleClassOS).Replace("##--ROUND_OFF_LEDGER_HERE--##", roundLedger).Replace("##--IGST_LEDGER_HERE--##", igstLedger).Replace("##--TRANSPORTER_HERE--##", tName).Replace("##--SALE_LEDGER_HERE--##", saleLedgerOS).Replace("##--STATE_NAME_HERE--##", toState).Replace("##--POS_HERE--##", supplyState);
                     }
                 }
             }

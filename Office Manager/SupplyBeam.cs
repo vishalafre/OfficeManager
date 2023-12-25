@@ -53,6 +53,7 @@ namespace Office_Manager
 
         private void SupplyBeam_Load(object sender, EventArgs e)
         {
+            checkBox1.Visible = false;
             cuts0.KeyDown += new KeyEventHandler(cuts_KeyDown);
             con.Open();
             isOpen = true;
