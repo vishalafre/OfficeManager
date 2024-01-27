@@ -226,20 +226,9 @@ namespace Office_Manager
 
         private void button2_Click(object sender, EventArgs e)
         {
-            con.Open();
-
-            SqlCommand cmd = new SqlCommand("update roll_entry set roll_no = (SELECT MIN(RNO) ROLL_NO FROM (SELECT (RN + 1) RNO FROM (select 0 RN UNION SELECT distinct re1.roll_no from roll_entry re, ROLL_ENTRY RE1, roll_content rc, roll r where r.ROLL_NO = rc.roll_no and rc.entry_id = re.entry_id and R.ROLL_NO = @ROLL_NO AND RE1.GODOWN = RE.GODOWN AND RE1.QUALITY = RE.QUALITY AND RE1.DESPATCHED = 'N' AND re.FIRM = @FIRM and re1.roll_no > 0) X WHERE (RN + 1) not in (select re1.roll_no from roll_entry re, ROLL_ENTRY RE1, roll_content rc, roll r where r.ROLL_NO = rc.roll_no and rc.entry_id = re.entry_id and R.ROLL_NO = @ROLL_NO AND RE1.GODOWN = RE.GODOWN AND RE1.QUALITY = RE.QUALITY AND RE1.DESPATCHED = 'N' AND re.FIRM = @FIRM AND RE1.ROLL_NO > 0)) Y), despatched = 'N' where ENTRY_ID IN (SELECT ENTRY_ID FROM ROLL_CONTENT WHERE FIRM = @FIRM AND ROLL_NO = @ROLL_NO) AND DATEADD(YEAR,1,TXN_DATE) > GETDATE()", con);
-            cmd.Parameters.AddWithValue("@FIRM", firm);
-            cmd.Parameters.AddWithValue("@ROLL_NO", textBox1.Text);
-            cmd.ExecuteNonQuery();
-
-            cmd = new SqlCommand("DELETE FROM ROLL_CONTENT WHERE FIRM = @FIRM AND ROLL_NO = @ROLL_NO AND ENTRY_ID IN (SELECT ENTRY_ID FROM ROLL_ENTRY WHERE DATEADD(YEAR,1,TXN_DATE) > GETDATE())", con);
-            cmd.Parameters.AddWithValue("@FIRM", firm);
-            cmd.Parameters.AddWithValue("@ROLL_NO", textBox1.Text);
-            cmd.ExecuteNonQuery();
-
             int year = DateTime.Now.Year;
             int month = DateTime.Now.Month;
+
             string fy = "";
 
             if (month >= 4)
@@ -250,6 +239,38 @@ namespace Office_Manager
             {
                 fy = (year - 1) + "-" + year.ToString().Substring(year.ToString().Length - 2);
             }
+
+            string yy = "";
+
+            if (month >= 4)
+            {
+                yy = (year + 1).ToString().Substring(year.ToString().Length - 2);
+            }
+            else
+            {
+                yy = year.ToString().Substring(year.ToString().Length - 2);
+            }
+
+            int fyYear = Int32.Parse(yy);
+
+            string fromDate = "01-APR-" + (fyYear - 1);
+            string toDate = "31-MAR-" + fyYear;
+
+            con.Open();
+
+            SqlCommand cmd = new SqlCommand("update roll_entry set roll_no = (SELECT MIN(RNO) ROLL_NO FROM (SELECT (RN + 1) RNO FROM (select 0 RN UNION SELECT distinct re1.roll_no from roll_entry re, ROLL_ENTRY RE1, roll_content rc, roll r where r.ROLL_NO = rc.roll_no and rc.entry_id = re.entry_id and R.ROLL_NO = @ROLL_NO AND RE1.GODOWN = RE.GODOWN AND RE1.QUALITY = RE.QUALITY AND RE1.DESPATCHED = 'N' AND re.FIRM = @FIRM and re1.roll_no > 0) X WHERE (RN + 1) not in (select re1.roll_no from roll_entry re, ROLL_ENTRY RE1, roll_content rc, roll r where r.ROLL_NO = rc.roll_no and rc.entry_id = re.entry_id and R.ROLL_NO = @ROLL_NO AND RE1.GODOWN = RE.GODOWN AND RE1.QUALITY = RE.QUALITY AND RE1.DESPATCHED = 'N' AND re.FIRM = @FIRM AND RE1.ROLL_NO > 0)) Y), despatched = 'N' where ENTRY_ID IN (SELECT ENTRY_ID FROM ROLL_CONTENT WHERE FIRM = @FIRM AND TXN_DATE BETWEEN @FROM_DT AND @TO_DT AND ROLL_NO = @ROLL_NO) AND DATEADD(YEAR,1,TXN_DATE) > GETDATE()", con);
+            cmd.Parameters.AddWithValue("@FIRM", firm);
+            cmd.Parameters.AddWithValue("@ROLL_NO", textBox1.Text);
+            cmd.Parameters.AddWithValue("@FROM_DT", fromDate);
+            cmd.Parameters.AddWithValue("@TO_DT", toDate);
+            cmd.ExecuteNonQuery();
+
+            cmd = new SqlCommand("DELETE FROM ROLL_CONTENT WHERE ENTRY_ID IN (SELECT RC.ENTRY_ID FROM ROLL_CONTENT RC, ROLL_ENTRY RE WHERE RC.ENTRY_ID = RE.ENTRY_ID AND TXN_DATE BETWEEN @FROM_DT AND @TO_DT AND RC.FIRM = @FIRM AND RC.ROLL_NO = @ROLL_NO AND RC.ENTRY_ID IN (SELECT ENTRY_ID FROM ROLL_ENTRY WHERE DATEADD(YEAR,1,TXN_DATE) > GETDATE()))", con);
+            cmd.Parameters.AddWithValue("@FIRM", firm);
+            cmd.Parameters.AddWithValue("@ROLL_NO", textBox1.Text);
+            cmd.Parameters.AddWithValue("@FROM_DT", fromDate);
+            cmd.Parameters.AddWithValue("@TO_DT", toDate);
+            cmd.ExecuteNonQuery();
 
             cmd = new SqlCommand("DELETE FROM ROLL WHERE FIRM = @FIRM AND ROLL_NO = @ROLL_NO AND FY = @FY", con);
             cmd.Parameters.AddWithValue("@FIRM", firm);

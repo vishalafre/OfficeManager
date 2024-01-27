@@ -120,7 +120,7 @@ namespace Office_Manager
             fromDate = "01-APR-" + (fyYear - 1);
             toDate = "31-MAR-" + fyYear;
 
-            query = "select (select tech_name from product where pid = quality) quality, txn_date, isnull((select w_name from weaver where wid = weaver), 'Old Roll') weaver, re.mtr, (select g_name from godown where gid = godown) godown from roll_entry re, roll r, ROLL_CONTENT rc where r.roll_no = rc.roll_no and rc.entry_id = re.entry_id and RE.FIRM = '"+ firm + "' and despatch_date BETWEEN @FROM_DT AND @TO_DT AND re.ENTRY_ID IN (SELECT ENTRY_ID FROM ROLL_CONTENT WHERE ROLL_NO = @ROLL_NO) AND DATEADD(YEAR,1,TXN_DATE) > GETDATE()";
+            query = "select (select tech_name from product where pid = quality) quality, txn_date, isnull((select w_name from weaver where wid = weaver), 'Old Roll') weaver, re.mtr, (select g_name from godown where gid = godown) godown from roll_entry re, roll r, ROLL_CONTENT rc where r.roll_no = rc.roll_no and rc.entry_id = re.entry_id and RE.FIRM = '"+ firm + "' and despatch_date BETWEEN @FROM_DT AND @TO_DT and txn_date BETWEEN @FROM_DT AND @TO_DT AND re.ENTRY_ID IN (SELECT ENTRY_ID FROM ROLL_CONTENT WHERE ROLL_NO = @ROLL_NO) AND DATEADD(YEAR,1,TXN_DATE) > GETDATE()";
             oCmd = new SqlCommand(query, con);
             oCmd.Parameters.AddWithValue("@ROLL_NO", rollNo);
             oCmd.Parameters.AddWithValue("@FROM_DT", fromDate);
