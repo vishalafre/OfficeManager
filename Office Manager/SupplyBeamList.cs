@@ -39,7 +39,7 @@ namespace Office_Manager
             dataGridView1.Columns.Add(col);
 
             con.Open();
-            string query = "select ROW_NUMBER() OVER (ORDER BY txn_date DESC) AS IND, TXN_ID, sum(cuts) cuts FROM SUPPLY_BEAM WHERE FIRM = '" + firm + "' AND SUPPLY_FROM_TYPE <> 'O' AND (SUPPLY_TO_TYPE <> 'R' AND SUPPLY_TO_TYPE <> 'T' or supply_to_type is null) group by TXN_ID, TXN_DATE order by txn_date desc, txn_id desc";
+            string query = "select ROW_NUMBER() OVER (ORDER BY txn_date DESC, ENTRY_ID DESC) AS IND, ENTRY_ID, TXN_ID, sum(cuts) cuts FROM SUPPLY_BEAM WHERE FIRM = '" + firm + "' AND SUPPLY_FROM_TYPE <> 'O' AND (SUPPLY_TO_TYPE <> 'R' AND SUPPLY_TO_TYPE <> 'T' or supply_to_type is null) group by TXN_ID, ENTRY_ID, TXN_DATE order by txn_date desc, txn_id desc";
             SqlCommand oCmd = new SqlCommand(query, con);
             oCmd.Parameters.AddWithValue("@FIRM", firm);
 
@@ -101,7 +101,7 @@ namespace Office_Manager
             }
 
             con.Open();
-            string sql = "select IND \"INDEX\", DATE, F \"FROM\", T \"TO\", BEAM, CUTS FROM (select ROW_NUMBER() OVER (ORDER BY txn_date DESC, txn_id desc) AS IND, txn_date DATE, txn_id, case min(supply_from_type) WHEN 'W' THEN (SELECT W_NAME FROM WEAVER WHERE WID = min(SUPPLY_FROM)) else (SELECT G_NAME FROM GODOWN WHERE GID = min(SUPPLY_FROM)) end F, case when min(excess) is null then '' when min(supply_TO_type) = 'G' then (SELECT G_NAME FROM GODOWN WHERE GID = min(SUPPLY_TO)) WHEN min(supply_TO_type) = 'W' THEN (SELECT W_NAME FROM WEAVER WHERE WID = min(SUPPLY_TO)) end T, (SELECT TECH_NAME FROM PRODUCT WHERE PID = MIN(BEAM)) BEAM, sum(cuts) CUTS FROM SUPPLY_BEAM WHERE FIRM = '" + firm + "' AND SUPPLY_FROM_TYPE <> 'O' AND ((SUPPLY_TO_TYPE <> 'R' AND SUPPLY_TO_TYPE <> 'T') or supply_to_type is null) group by txn_date, TXN_ID) T WHERE IND >= " + startIndex + " AND IND <= " + endIndex + " ORDER BY DATE DESC, txn_id desc";
+            string sql = "select IND \"INDEX\", DATE, F \"FROM\", T \"TO\", BEAM, CUTS FROM (select ROW_NUMBER() OVER (ORDER BY txn_date DESC, txn_id desc) AS IND, ENTRY_ID, txn_date DATE, txn_id, case min(supply_from_type) WHEN 'W' THEN (SELECT W_NAME FROM WEAVER WHERE WID = min(SUPPLY_FROM)) else (SELECT G_NAME FROM GODOWN WHERE GID = min(SUPPLY_FROM)) end F, case when min(excess) is null then '' when min(supply_TO_type) = 'G' then (SELECT G_NAME FROM GODOWN WHERE GID = min(SUPPLY_TO)) WHEN min(supply_TO_type) = 'W' THEN (SELECT W_NAME FROM WEAVER WHERE WID = min(SUPPLY_TO)) end T, (SELECT TECH_NAME FROM PRODUCT WHERE PID = MIN(BEAM)) BEAM, sum(cuts) CUTS FROM SUPPLY_BEAM WHERE FIRM = '" + firm + "' AND SUPPLY_FROM_TYPE <> 'O' AND ((SUPPLY_TO_TYPE <> 'R' AND SUPPLY_TO_TYPE <> 'T') or supply_to_type is null) group by txn_date, TXN_ID, ENTRY_ID) T WHERE IND >= " + startIndex + " AND IND <= " + endIndex + " ORDER BY DATE DESC, txn_id desc, ENTRY_ID DESC";
             SqlDataAdapter dataadapter = new SqlDataAdapter(sql, con);
             DataSet ds = new DataSet();
 

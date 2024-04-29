@@ -303,9 +303,28 @@ namespace Office_Manager
                         {
                             if (patondaRowIndex == 3)
                             {
-                                previousOfficeQuality = quality;
+                                previousPatondaQuality = quality;
+                            }
+
+                            if (patondaRowIndex > 49)
+                            {
+                                patondaRowIndex = 3;
+                                patondaColIndex += 3;
+                            }
+
+                            ICell cell = patondaSheet.GetRow(patondaRowIndex).GetCell(patondaColIndex);
+                            if (cell == null)
+                            {
+                                patondaSheet.GetRow(patondaRowIndex).CreateCell(patondaColIndex);
                             }
                             patondaSheet.GetRow(patondaRowIndex).GetCell(patondaColIndex).SetCellValue(quality);
+
+                            cell = patondaSheet.GetRow(patondaRowIndex).GetCell(patondaColIndex + 1);
+                            if (cell == null)
+                            {
+                                patondaSheet.GetRow(patondaRowIndex).CreateCell(patondaColIndex + 1);
+                            }
+
                             patondaSheet.GetRow(patondaRowIndex++).GetCell(patondaColIndex + 1).SetCellValue(mtr);
                         }
                         else

@@ -191,14 +191,14 @@ namespace Office_Manager
         private void pictureBox1_Click(object sender, EventArgs e)
         {
             IWorkbook templateWorkbook;
-            using (FileStream fs = new FileStream(@"C:\Users\LENOVO\OneDrive\Documents\bank.xls", FileMode.Open, FileAccess.ReadWrite))
+            using (FileStream fs = new FileStream(@"C:\Users\visha\OneDrive\Documents\tally-statement\bank.xls", FileMode.Open, FileAccess.ReadWrite))
             {
                 templateWorkbook = new HSSFWorkbook(fs);
                 fs.Close();
             }
 
             IWorkbook newWorkbook;
-            using (FileStream fs = new FileStream(@"C:\Users\LENOVO\OneDrive\Documents\old-format-stmt.xls", FileMode.Open, FileAccess.ReadWrite))
+            using (FileStream fs = new FileStream(@"C:\Users\visha\OneDrive\Documents\tally-statement\old-format-stmt.xls", FileMode.Open, FileAccess.ReadWrite))
             {
                 newWorkbook = new HSSFWorkbook(fs);
                 fs.Close();
@@ -232,9 +232,25 @@ namespace Office_Manager
                         break;
                     }
 
-                    if (sheet.GetRow(row).GetCell(3) == null ||
-                        sheet.GetRow(row).GetCell(3).StringCellValue == null ||
-                        sheet.GetRow(row).GetCell(3).StringCellValue.Trim().Equals(""))
+                    /*row = 95;
+                    int a = 0;
+                    while (true)
+                    {
+                        if (sheet.GetRow(row).GetCell(a) != null &&
+                            sheet.GetRow(row).GetCell(a).StringCellValue != null)
+                        {
+                            string value = sheet.GetRow(row).GetCell(a).StringCellValue;
+                            value += "";
+                            a++;
+                        } else
+                        {
+                            break;
+                        }
+                    }*/
+
+                    if (sheet.GetRow(row).GetCell(19) == null ||
+                        sheet.GetRow(row).GetCell(19).StringCellValue == null ||
+                        sheet.GetRow(row).GetCell(19).StringCellValue.Trim().Equals(""))
                     {
                         row--;
                         continue;
@@ -263,10 +279,10 @@ namespace Office_Manager
 
                     sheetNew.GetRow(13 + count).GetCell(0).SetCellValue(count + 1);
 
-                    string date = sheet.GetRow(row).GetCell(1).StringCellValue.Replace("/", "-");
+                    string date = sheet.GetRow(row).GetCell(2).StringCellValue.Replace("/", "-");
                     sheetNew.GetRow(13 + count).GetCell(1).SetCellValue(date);
 
-                    string narration = sheet.GetRow(row).GetCell(3).StringCellValue;
+                    string narration = sheet.GetRow(row).GetCell(5).StringCellValue;
                     sheetNew.GetRow(13 + count).GetCell(2).SetCellValue(narration);
 
                     string chqNo = "";
@@ -276,18 +292,18 @@ namespace Office_Manager
                         sheetNew.GetRow(13 + count).GetCell(4).SetCellValue(chqNo);
                     }
                     string debit = "";
-                    if (sheet.GetRow(row).GetCell(9) != null)
+                    if (sheet.GetRow(row).GetCell(12) != null)
                     {
-                        debit = sheet.GetRow(row).GetCell(11).StringCellValue;
+                        debit = sheet.GetRow(row).GetCell(12).StringCellValue;
                         sheetNew.GetRow(13 + count).GetCell(5).SetCellValue(debit);
                     }
                     string credit = "";
-                    if (sheet.GetRow(row).GetCell(9) != null)
+                    if (sheet.GetRow(row).GetCell(17) != null)
                     {
                         credit = sheet.GetRow(row).GetCell(17).StringCellValue;
                         sheetNew.GetRow(13 + count).GetCell(6).SetCellValue(credit);
                     }
-                    string balance = sheet.GetRow(row).GetCell(20).StringCellValue;
+                    string balance = sheet.GetRow(row).GetCell(19).StringCellValue;
                     sheetNew.GetRow(13 + count).GetCell(7).SetCellValue(balance);
 
                     sheetNew.GetRow(13 + count).GetCell(8).SetCellValue(date);
@@ -328,12 +344,12 @@ namespace Office_Manager
                 }
 
                 templateWorkbook.Close();
-                if (File.Exists(@"C:\Users\LENOVO\OneDrive\Documents\Tally Statement.xls"))
+                if (File.Exists(@"C:\Users\visha\OneDrive\Documents\tally-statement\Tally Statement.xls"))
                 {
-                    File.Delete(@"C:\Users\LENOVO\OneDrive\Documents\Tally Statement.xls");
+                    File.Delete(@"C:\Users\visha\OneDrive\Documents\tally-statement\Tally Statement.xls");
                 }
 
-                using (FileStream file = new FileStream(@"C:\Users\LENOVO\OneDrive\Documents\Tally Statement.xls", FileMode.CreateNew, FileAccess.Write))
+                using (FileStream file = new FileStream(@"C:\Users\visha\OneDrive\Documents\tally-statement\Tally Statement.xls", FileMode.CreateNew, FileAccess.Write))
                 {
                     newWorkbook.Write(file);
                     file.Close();

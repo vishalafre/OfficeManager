@@ -39,7 +39,7 @@ namespace Office_Manager
             dataGridView1.Columns.Add(col);
 
             con.Open();
-            string query = "select ROW_NUMBER() OVER (ORDER BY txn_date DESC) AS IND, ENTRY_ID FROM TAKA_ENTRY WHERE FIRM = '" + firm + "' and WEAVER IS NOT NULL order by txn_date desc";
+            string query = "select ROW_NUMBER() OVER (ORDER BY txn_date DESC, ENTRY_ID DESC) AS IND, ENTRY_ID FROM TAKA_ENTRY WHERE FIRM = '" + firm + "' and WEAVER IS NOT NULL order by txn_date desc";
             SqlCommand oCmd = new SqlCommand(query, con);
             oCmd.Parameters.AddWithValue("@FIRM", firm);
 
@@ -99,7 +99,7 @@ namespace Office_Manager
             }
 
             con.Open();
-            string sql = "select IND \"INDEX\", DATE, WEAVER, GODOWN, QUALITY, TAKAS, METERS FROM (select ROW_NUMBER() OVER (ORDER BY txn_date DESC) AS IND, txn_date DATE, (SELECT W_NAME FROM WEAVER WHERE WID = WEAVER) WEAVER, (SELECT G_NAME FROM GODOWN WHERE GID = GODOWN) GODOWN, (SELECT TECH_NAME FROM PRODUCT WHERE PID = QUALITY) QUALITY, TAKA_CNT TAKAS, MTR METERS FROM TAKA_ENTRY WHERE FIRM = '" + firm + "' and WEAVER IS NOT NULL) T WHERE IND >= " + startIndex + " AND IND <= " + endIndex + " ORDER BY DATE DESC";
+            string sql = "select IND \"INDEX\", DATE, WEAVER, GODOWN, QUALITY, TAKAS, METERS FROM (select ROW_NUMBER() OVER (ORDER BY txn_date DESC, ENTRY_ID DESC) AS IND, ENTRY_ID, txn_date DATE, (SELECT W_NAME FROM WEAVER WHERE WID = WEAVER) WEAVER, (SELECT G_NAME FROM GODOWN WHERE GID = GODOWN) GODOWN, (SELECT TECH_NAME FROM PRODUCT WHERE PID = QUALITY) QUALITY, TAKA_CNT TAKAS, MTR METERS FROM TAKA_ENTRY WHERE FIRM = '" + firm + "' and WEAVER IS NOT NULL) T WHERE IND >= " + startIndex + " AND IND <= " + endIndex + " ORDER BY DATE DESC, ENTRY_ID DESC";
             SqlDataAdapter dataadapter = new SqlDataAdapter(sql, con);
             DataSet ds = new DataSet();
 

@@ -103,7 +103,13 @@ namespace Office_Manager
                         categories.Add("Yarn", "Yarn");
                         categories.Add("Beam", "Beam");
                         categories.Add("Cloth", "Cloth");
-                        comboBox1.SelectedIndex = comboBox1.FindString(categories[oReader["CATEGORY"].ToString()]);
+
+                        try
+                        {
+                            comboBox1.SelectedIndex = comboBox1.FindString(categories[oReader["CATEGORY"].ToString()]);
+                        } catch {
+                            comboBox1.SelectedIndex = 0;
+                        }
 
                         comboBox3.SelectedIndex = comboBox3.FindString(units[oReader["UNIT"].ToString()]);
                         checkBox4.Checked = (oReader["TAKA"].ToString().Equals("Y"));
@@ -213,6 +219,10 @@ namespace Office_Manager
 
         private void button1_Click(object sender, EventArgs e)
         {
+            if(comboBox1.Text.Equals("")) {
+                MessageBox.Show("Please select category");
+                return;
+            }
             SqlCommand cmd = null;
             List<SqlCommand> productReqCmds = new List<SqlCommand>();
             SqlCommand delCmd = null;
@@ -554,11 +564,11 @@ namespace Office_Manager
                 cmd.Parameters.AddWithValue("@PID", pId);
                 cmd.ExecuteNonQuery();
 
-                cmd = new SqlCommand("delete from PRODUCT where pid = @PID", con);
+                cmd = new SqlCommand("delete from item where pid_pk = @PID", con);
                 cmd.Parameters.AddWithValue("@PID", pId);
                 cmd.ExecuteNonQuery();
 
-                cmd = new SqlCommand("delete from item where pid_pk = @PID", con);
+                cmd = new SqlCommand("delete from PRODUCT where pid = @PID", con);
                 cmd.Parameters.AddWithValue("@PID", pId);
                 cmd.ExecuteNonQuery();
 

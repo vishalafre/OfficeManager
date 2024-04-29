@@ -225,7 +225,7 @@ namespace Office_Manager
             }
 
             string URI = "http://www.afrestudios.com/office-manager/insert_order.php";
-
+            /*
             string response = "";
             using (WebClient client = new WebClient())
             {
@@ -262,7 +262,7 @@ namespace Office_Manager
                     //MessageBox.Show("No connection to network");
                     //return;
                 }
-            }
+            }*/
 
             if(true)  //response.Equals("SUCCESS")
             {
@@ -321,7 +321,7 @@ namespace Office_Manager
                 //return;
             }
 
-            response = "";
+            string response = "";
             agent = "(select aid from agent where a_name = 'NA' and firm = '" + company + "')";
             agt = ((KeyValuePair<string, string>)comboBox3.SelectedItem).Key;
             if (!agt.Equals("0"))
@@ -356,7 +356,7 @@ namespace Office_Manager
                     string billId = oReader["bill_id"].ToString();
 
                     URI = "http://www.afrestudios.com/office-manager/insert_order_supply.php";
-
+                    /*
                     using (WebClient client = new WebClient())
                     {
                         var reqparm = new System.Collections.Specialized.NameValueCollection();
@@ -387,7 +387,7 @@ namespace Office_Manager
                             MessageBox.Show("No connection to network");
                             return;
                         }
-                    }
+                    }*/
 
                     if (true)   // response.Equals("SUCCESS")
                     {
@@ -421,7 +421,7 @@ namespace Office_Manager
                     if (meters >= Double.Parse(textBox5.Text))
                     {
                         URI = "http://www.afrestudios.com/office-manager/mark_order_confirm.php";
-
+                        /*
                         using (WebClient client = new WebClient())
                         {
                             var reqparm = new System.Collections.Specialized.NameValueCollection();
@@ -449,7 +449,7 @@ namespace Office_Manager
                                 MessageBox.Show("No connection to network");
                                 return;
                             }
-                        }
+                        }*/
 
                         if (true) //response.Equals("SUCCESS")
                         {
@@ -535,7 +535,7 @@ namespace Office_Manager
         private Boolean deleteOrder()
         {
             con.Open();
-
+            /*
             string URI = "http://www.afrestudios.com/office-manager/delete_order.php";
 
             string response = "";
@@ -565,7 +565,7 @@ namespace Office_Manager
                     MessageBox.Show("No connection to network");
                     return false;
                 }
-            }
+            }*/
 
             if (true) // response.Equals("SUCCESS")
             {
