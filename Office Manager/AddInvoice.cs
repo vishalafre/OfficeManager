@@ -16,7 +16,7 @@ using System.Windows.Forms;
 using System.Text.RegularExpressions;
 using Office_Manager;
 using System.Net;
-
+using Newtonsoft.Json;
 
 namespace Office_Manager
 {
@@ -1084,11 +1084,6 @@ namespace Office_Manager
                 updateBtn.Enabled = false;
                 deleteBtn.Enabled = false;
 
-                if (!updateOrder())
-                {
-                    return;
-                }
-
                 Boolean flag = false;
                 txnFlag = 2;
                 if (DateTime.Compare(date2, date1) < 0)
@@ -1098,8 +1093,23 @@ namespace Office_Manager
                 }
                 else
                 {
-                    saveInvoiceNew();
+                    bool b = saveInvoiceNew();
                     flag = true;
+
+                    if(!b)
+                    {
+                        button6.Text = "Save";
+
+                        updateBtn.Enabled = true;
+                        button6.Enabled = true;
+                        deleteBtn.Enabled = true;
+                        return;
+                    }
+                }
+
+                if (!updateOrder())
+                {
+                    return;
                 }
 
                 if (flag)
@@ -1143,6 +1153,7 @@ namespace Office_Manager
 
                     uploadRollNo();
                     insertRolls();
+                    setDatesAndInsertConeStock();
                 }
 
                 button6.Text = "Preview";
@@ -1167,7 +1178,7 @@ namespace Office_Manager
             return ((j < 0.5) ? i : (i + 1));
         }
 
-        private void saveInvoiceNew()
+        private bool saveInvoiceNew()
         {
             netAmt = 0;
             cgstAmt = 0;
@@ -1177,6 +1188,93 @@ namespace Office_Manager
             billAmt = 0;
             roundOff = 0;
             disc = 0;
+
+            int year = invoiceDt.Value.Year;
+            int month = invoiceDt.Value.Month;
+            string fy = "";
+
+            if (month >= 4)
+            {
+                fy = year + "-" + (year + 1).ToString().Substring(year.ToString().Length - 2);
+            }
+            else
+            {
+                fy = (year - 1) + "-" + year.ToString().Substring(year.ToString().Length - 2);
+            }
+
+            // CHECK DUPLICATE ROLL
+
+            string rollNoString = "(";
+            int qt = 0;
+            for (int j = 0; j < rollCount; j++)
+            {
+                string index = "";
+                if (j > 0)
+                {
+                    index = j + "";
+                }
+
+                TextBox cRoll = (TextBox)panel1.Controls.Find("rollNo" + index, true)[0];
+                TextBox cQty = (TextBox)panel1.Controls.Find("qty" + index, true)[0];
+
+                int rn = 0;
+                try
+                {
+                    rn = int.Parse(cRoll.Text);
+                    qt = int.Parse(cQty.Text);
+
+                    if(j != rollCount - 1)
+                    {
+                        rollNoString += "'" + rn + "'" + ",";
+                    }
+                    else
+                    {
+                        rollNoString += "'" + rn + "'" + ")";
+                    }
+                }
+                catch (Exception e)
+                {
+
+                }
+            }
+
+            string op = ">";
+            string productType = "Bale";
+            if(qt == 1)
+            {
+                op = "=";
+                productType = "Roll";
+            }
+
+            string rNo = "";
+            if (!rollNoString.Equals("("))
+            {
+                String query = "select * from BILL_ITEM where firm = @FIRM AND FY = @FY AND ROLL_NO IN " + rollNoString + " AND QTY " + op + " 1";
+                SqlCommand oCmd = new SqlCommand(query, con);
+                oCmd.Parameters.AddWithValue("@FIRM", company);
+                oCmd.Parameters.AddWithValue("@FY", fy);
+                con.Open();
+
+                using (SqlDataReader oReader = oCmd.ExecuteReader())
+                {
+                    if (oReader.Read())
+                    {
+                        string billId = oReader["BILL_ID"].ToString();
+                        string ino = invoiceNo.Text;
+                        if (!billId.Equals(invoiceNo.Text))
+                        {
+                            rNo = oReader["ROLL_NO"].ToString();
+                        }
+                    }
+                }
+            }
+            con.Close();
+
+            if(!rNo.Equals(""))
+            {
+                MessageBox.Show("Duplicate " + productType + " No: " + rNo);
+                return false;
+            }
 
             // Get Roll Nos
             meters = 0;
@@ -1318,19 +1416,6 @@ namespace Office_Manager
                 meters += meter;//
                 netTotal += Double.Parse(cMtr.Text) * Double.Parse(cRate.Text);
 
-                int year = invoiceDt.Value.Year;
-                int month = invoiceDt.Value.Month;
-                string fy = "";
-
-                if (month >= 4)
-                {
-                    fy = year + "-" + (year + 1).ToString().Substring(year.ToString().Length - 2);
-                }
-                else
-                {
-                    fy = (year - 1) + "-" + year.ToString().Substring(year.ToString().Length - 2);
-                }
-
                 string g = ((KeyValuePair<string, string>)cGodown.SelectedItem).Key;
                 if (g.Equals(""))
                 {
@@ -1387,6 +1472,7 @@ namespace Office_Manager
                 cmdBI.ExecuteNonQuery();
             }
             con.Close();
+            return true;
         }
 
         private void saveInvoice()
@@ -2352,7 +2438,7 @@ namespace Office_Manager
                 {
                     try
                     {
-                        client.Credentials = new NetworkCredential("u220970540", "Mycomputer12@");
+                        client.Credentials = new NetworkCredential("u220970540", "Quicktatkal12@");
                         client.UploadFile("ftp://u220970540@217.21.93.152/domains/afrestudios.com/public_html/office-manager/roll_no.txt", WebRequestMethods.Ftp.UploadFile, @"C:\Invoices\rollNo.txt");
                     }
                     catch (Exception e)
@@ -2381,10 +2467,6 @@ namespace Office_Manager
             button6.Enabled = false;
             deleteBtn.Enabled = false;
 
-            if (!updateOrder())
-            {
-                return;
-            }
             deleteInvoice();
             Boolean flag = false;
             if (DateTime.Compare(date2, date1) < 0)
@@ -2394,8 +2476,22 @@ namespace Office_Manager
             }
             else
             {
-                saveInvoiceNew();
+                bool b = saveInvoiceNew();
                 flag = true;
+                if(!b)
+                {
+                    updateBtn.Text = "Update";
+                    updateBtn.Enabled = true;
+                    button6.Enabled = true;
+                    deleteBtn.Enabled = true;
+
+                    return;
+                }
+            }
+
+            if (!updateOrder())
+            {
+                return;
             }
 
             if (flag)
@@ -2445,12 +2541,106 @@ namespace Office_Manager
 
                 uploadRollNo();
                 insertRolls();
+                setDatesAndInsertConeStock();
             }
 
             updateBtn.Text = "Update";
             updateBtn.Enabled = true;
             button6.Enabled = true;
             deleteBtn.Enabled = true;
+        }
+        private async void setDatesAndInsertConeStock()
+        {
+            // Get today's date
+            DateTime today = DateTime.Today;
+
+            // Find last Sunday
+            int daysUntilLastSunday = (int)today.DayOfWeek;
+            DateTime lastSunday = today.AddDays(-daysUntilLastSunday);
+
+            String[] dates = new string[6];
+            int cnt = 0;
+
+            // Generate the three sets of dates
+            for (int i = 0; i < 3; i++)
+            {
+                DateTime startOfWeek = lastSunday.AddDays(-7 * i);
+                DateTime endOfWeek = startOfWeek.AddDays(6);
+
+                string startOfWeekStr = startOfWeek.ToString("yyyy-MM-dd");
+                string endOfWeekStr = endOfWeek.ToString("yyyy-MM-dd");
+
+                dates[cnt++] = startOfWeekStr;
+                dates[cnt++] = endOfWeekStr;
+            }
+
+            insertConeStock(dates);
+        }
+        private async void insertConeStock(String[] dates)
+        {
+            await Task.Run(() =>
+            {
+                SqlConnection con1 = new SqlConnection("Data Source=(localdb)\\VISHAL;AttachDbFilename=|DataDirectory|\\Files\\DBQuery.mdf;Integrated Security=True");
+                con1.Open();
+
+                string query1 = "SELECT '"+ dates[0] +"' START_DT, '"+ dates[1] +"' END_DT, ISNULL(T1.W_NAME, OTH_WEAVER) W_NAME, ISNULL(T1.TECH_NAME, OTH_YARN) TECH_NAME, ISNULL(CONE_SUPPLIED, 0) CONE_SUPPLIED, LAST_SUPPLY_DT, ISNULL(CONE_MFG, 0) CONE_MFG, LAST_MFG_DT, BALANCE FROM ( SELECT W_NAME, TECH_NAME, SUM(SC1.QTY) CONE_SUPPLIED, MAX(TXN_DATE) LAST_SUPPLY_DT FROM SUPPLY_CONE SC1, PRODUCT P, WEAVER W WHERE SC1.YARN = P.PID AND SC1.SUPPLY_TO = W.WID AND TXN_DATE BETWEEN '" + dates[0] +"' AND '"+ dates[1] +"' AND SUPPLY_TO_TYPE = 'W' GROUP BY W_NAME, TECH_NAME) T1 FULL OUTER JOIN (SELECT W_NAME, TECH_NAME, W_NAME OTH_WEAVER, TECH_NAME OTH_YARN, SUM(SC1.QTY) CONE_MFG, MAX(TXN_DATE) LAST_MFG_DT FROM SUPPLY_CONE SC1, PRODUCT P, WEAVER W WHERE SC1.YARN = P.PID AND SC1.SUPPLY_FROM = W.WID AND TXN_DATE BETWEEN '"+ dates[0] +"' AND '"+ dates[1] +"' AND SUPPLY_FROM_TYPE = 'W' AND SUPPLY_TO_TYPE IN ('R', 'T') GROUP BY W_NAME, TECH_NAME) T2 ON T1.W_NAME = T2.W_NAME AND T1.TECH_NAME = T2.TECH_NAME LEFT OUTER JOIN (SELECT W_NAME, TECH_NAME, SUM(BALANCE) BALANCE FROM ( SELECT W_NAME, TECH_NAME, SUM(QTY) BALANCE FROM SUPPLY_CONE SC, WEAVER W, PRODUCT P WHERE P.PID = SC.YARN AND W.WID = SC.SUPPLY_TO AND SUPPLY_TO_TYPE = 'W' GROUP BY W_NAME, TECH_NAME UNION SELECT W_NAME, TECH_NAME, -SUM(QTY) BALANCE FROM SUPPLY_CONE SC, WEAVER W, PRODUCT P WHERE P.PID = SC.YARN AND W.WID = SC.SUPPLY_FROM AND SUPPLY_FROM_TYPE = 'W' GROUP BY W_NAME, TECH_NAME) T GROUP BY W_NAME, TECH_NAME) T3 ON T2.W_NAME = T3.W_NAME AND T2.TECH_NAME = T3.TECH_NAME UNION SELECT '"+ dates[2] +"' START_DT, '"+ dates[3] +"' END_DT, ISNULL(T1.W_NAME, OTH_WEAVER) W_NAME, ISNULL(T1.TECH_NAME, OTH_YARN) TECH_NAME, ISNULL(CONE_SUPPLIED, 0) CONE_SUPPLIED, LAST_SUPPLY_DT, ISNULL(CONE_MFG, 0) CONE_MFG, LAST_MFG_DT, BALANCE FROM ( SELECT W_NAME, TECH_NAME, SUM(SC1.QTY) CONE_SUPPLIED, MAX(TXN_DATE) LAST_SUPPLY_DT FROM SUPPLY_CONE SC1, PRODUCT P, WEAVER W WHERE SC1.YARN = P.PID AND SC1.SUPPLY_TO = W.WID AND TXN_DATE BETWEEN '"+ dates[2] +"' AND '"+ dates[3] +"' AND SUPPLY_TO_TYPE = 'W' GROUP BY W_NAME, TECH_NAME) T1 FULL OUTER JOIN (SELECT W_NAME, TECH_NAME, W_NAME OTH_WEAVER, TECH_NAME OTH_YARN, SUM(SC1.QTY) CONE_MFG, MAX(TXN_DATE) LAST_MFG_DT FROM SUPPLY_CONE SC1, PRODUCT P, WEAVER W WHERE SC1.YARN = P.PID AND SC1.SUPPLY_FROM = W.WID AND TXN_DATE BETWEEN '"+ dates[2] +"' AND '"+ dates[3] +"' AND SUPPLY_FROM_TYPE = 'W' AND SUPPLY_TO_TYPE IN ('R', 'T') GROUP BY W_NAME, TECH_NAME) T2 ON T1.W_NAME = T2.W_NAME AND T1.TECH_NAME = T2.TECH_NAME LEFT OUTER JOIN (SELECT W_NAME, TECH_NAME, SUM(BALANCE) BALANCE FROM ( SELECT W_NAME, TECH_NAME, SUM(QTY) BALANCE FROM SUPPLY_CONE SC, WEAVER W, PRODUCT P WHERE P.PID = SC.YARN AND W.WID = SC.SUPPLY_TO AND SUPPLY_TO_TYPE = 'W' GROUP BY W_NAME, TECH_NAME UNION SELECT W_NAME, TECH_NAME, -SUM(QTY) BALANCE FROM SUPPLY_CONE SC, WEAVER W, PRODUCT P WHERE P.PID = SC.YARN AND W.WID = SC.SUPPLY_FROM AND SUPPLY_FROM_TYPE = 'W' GROUP BY W_NAME, TECH_NAME) T GROUP BY W_NAME, TECH_NAME) T3 ON T2.W_NAME = T3.W_NAME AND T2.TECH_NAME = T3.TECH_NAME UNION SELECT '"+ dates[4] +"' START_DT, '"+ dates[5] +"' END_DT, ISNULL(T1.W_NAME, OTH_WEAVER) W_NAME, ISNULL(T1.TECH_NAME, OTH_YARN) TECH_NAME, ISNULL(CONE_SUPPLIED, 0) CONE_SUPPLIED, LAST_SUPPLY_DT, ISNULL(CONE_MFG, 0) CONE_MFG, LAST_MFG_DT, BALANCE FROM ( SELECT W_NAME, TECH_NAME, SUM(SC1.QTY) CONE_SUPPLIED, MAX(TXN_DATE) LAST_SUPPLY_DT FROM SUPPLY_CONE SC1, PRODUCT P, WEAVER W WHERE SC1.YARN = P.PID AND SC1.SUPPLY_TO = W.WID AND TXN_DATE BETWEEN '"+ dates[4] +"' AND '"+ dates[5] +"' AND SUPPLY_TO_TYPE = 'W' GROUP BY W_NAME, TECH_NAME) T1 FULL OUTER JOIN (SELECT W_NAME, TECH_NAME, W_NAME OTH_WEAVER, TECH_NAME OTH_YARN, SUM(SC1.QTY) CONE_MFG, MAX(TXN_DATE) LAST_MFG_DT FROM SUPPLY_CONE SC1, PRODUCT P, WEAVER W WHERE SC1.YARN = P.PID AND SC1.SUPPLY_FROM = W.WID AND TXN_DATE BETWEEN '"+ dates[4] +"' AND '"+ dates[5] +"' AND SUPPLY_FROM_TYPE = 'W' AND SUPPLY_TO_TYPE IN ('R', 'T') GROUP BY W_NAME, TECH_NAME) T2 ON T1.W_NAME = T2.W_NAME AND T1.TECH_NAME = T2.TECH_NAME LEFT OUTER JOIN (SELECT W_NAME, TECH_NAME, SUM(BALANCE) BALANCE FROM ( SELECT W_NAME, TECH_NAME, SUM(QTY) BALANCE FROM SUPPLY_CONE SC, WEAVER W, PRODUCT P WHERE P.PID = SC.YARN AND W.WID = SC.SUPPLY_TO AND SUPPLY_TO_TYPE = 'W' GROUP BY W_NAME, TECH_NAME UNION SELECT W_NAME, TECH_NAME, -SUM(QTY) BALANCE FROM SUPPLY_CONE SC, WEAVER W, PRODUCT P WHERE P.PID = SC.YARN AND W.WID = SC.SUPPLY_FROM AND SUPPLY_FROM_TYPE = 'W' GROUP BY W_NAME, TECH_NAME) T GROUP BY W_NAME, TECH_NAME) T3 ON T2.W_NAME = T3.W_NAME AND T2.TECH_NAME = T3.TECH_NAME ORDER BY W_NAME";
+
+                SqlCommand oCmd1 = new SqlCommand(query1, con1);
+
+                List<Dictionary<string, object>> dataList = new List<Dictionary<string, object>>();
+
+                using (SqlDataReader oReader = oCmd1.ExecuteReader())
+                {
+                    while (oReader.Read())
+                    {
+                        // Create a dictionary to hold the row data.
+                        Dictionary<string, object> record = new Dictionary<string, object>();
+                        record["START_DT"] = oReader["START_DT"];
+                        record["END_DT"] = oReader["END_DT"];
+                        record["W_NAME"] = oReader["W_NAME"];
+                        record["TECH_NAME"] = oReader["TECH_NAME"];
+                        record["CONE_SUPPLIED"] = oReader["CONE_SUPPLIED"];
+                        record["LAST_SUPPLY_DT"] = oReader["LAST_SUPPLY_DT"];
+                        record["CONE_MFG"] = oReader["CONE_MFG"];
+                        record["LAST_MFG_DT"] = oReader["LAST_MFG_DT"];
+                        record["BALANCE"] = oReader["BALANCE"];
+
+                        // Add the record to the list.
+                        dataList.Add(record);
+                    }
+                }
+
+                // Create a final object including the additional fields along with the data array.
+                var result = new
+                {
+                    data = dataList
+                };
+
+                // Convert the object to a JSON string.
+                string jsonString = JsonConvert.SerializeObject(result, Formatting.Indented);
+
+                if (!jsonString.Equals(""))
+                {
+                    string URI = "https://www.afrestudios.com/office-manager/insert_cones.php";
+
+                    using (WebClient client = new WebClient())
+                    {
+                        var reqparm = new System.Collections.Specialized.NameValueCollection();
+                        reqparm.Add("data", jsonString);
+
+                        try
+                        {
+                            byte[] responsebytes = client.UploadValues(URI, "POST", reqparm);
+                            string resp = Encoding.UTF8.GetString(responsebytes);
+                            resp += " ";
+                        }
+                        catch
+                        {
+                        }
+                    }
+                }
+                con1.Close();
+            });
         }
 
         private async void insertRolls()
@@ -2877,6 +3067,23 @@ namespace Office_Manager
 
         private void billTo_SelectedIndexChanged(object sender, EventArgs e)
         {
+            string billToName = ((KeyValuePair<string, string>)billTo.SelectedItem).Value;
+            if (billToName.Equals("PADAM TRADERS") || billToName.Equals("HIMANSHU TRADERS"))
+            {
+                if (billToName.Equals("PADAM TRADERS"))
+                {
+                    this.disount.Text = "1.5";
+                }
+                else
+                {
+                    this.disount.Text = "2";
+                }
+            }
+            else
+            {
+                this.disount.Text = "0";
+            }
+
             if (billTo.SelectedIndex != 0)
             {
                 shipTo.SelectedIndex = billTo.SelectedIndex;

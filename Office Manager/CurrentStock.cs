@@ -217,15 +217,15 @@ namespace Office_Manager
 		
 		private void button1_Click(object sender, EventArgs e)
         {
-            //A4 - H50
-            try
+            generateExcel();
+            /*try
             {
                 generateExcel();
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
-            }
+            }*/
         }
 
         private void generateExcel()

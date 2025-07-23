@@ -73,6 +73,9 @@
       <HintPath>..\packages\Microsoft.Office.Interop.Excel.15.0.4795.1001\lib\net20\Microsoft.Office.Interop.Excel.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="NPOI, Version=2.2.1.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\Downloads\Compressed\NPOI 2.2.1 binary package\Release\Net40\NPOI.dll</HintPath>
@@ -184,6 +187,12 @@
     </Compile>
     <Compile Include="DespatchRoll.Designer.cs">
       <DependentUpon>DespatchRoll.cs</DependentUpon>
+    </Compile>
+    <Compile Include="EWBCredential.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="EWBCredential.Designer.cs">
+      <DependentUpon>EWBCredential.cs</DependentUpon>
     </Compile>
     <Compile Include="GodownList.cs">
       <SubType>Form</SubType>
@@ -539,6 +548,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="DespatchRoll.resx">
       <DependentUpon>DespatchRoll.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EWBCredential.resx">
+      <DependentUpon>EWBCredential.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="GodownList.resx">
       <DependentUpon>GodownList.cs</DependentUpon>

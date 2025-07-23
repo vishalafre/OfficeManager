@@ -19,6 +19,9 @@ using System.Collections.ObjectModel;
 using OpenQA.Selenium.Interactions;
 using System.Threading;
 using System.Drawing.Printing;
+using Microsoft.Office.Interop.Excel;
+using Point = System.Drawing.Point;
+using Font = System.Drawing.Font;
 
 namespace Office_Manager
 {
@@ -989,44 +992,52 @@ namespace Office_Manager
                 return;
             }
             bool error = false;
-            driver.FindElement(By.XPath("//*[@id=\"txt_username\"]")).SendKeys(username);
-            driver.FindElement(By.Id("txt_password")).SendKeys(password);
-
-            if (!fakeCaptchaSubmitted)
-            {
-                driver.FindElement(By.Id("txtCaptcha")).SendKeys("XXXXXX");
-                driver.FindElement(By.Id("btnLogin")).Click();
-                fakeCaptchaSubmitted = true;
-            }
-            else
-            {
-                driver.FindElement(By.Id("txtCaptcha")).SendKeys("");
-            }
-
-            // Exit click
 
             WebDriverWait waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
             try
             {
-                waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"A1\"]|//*[@id=\"Div2FA\"]/div/div/div[3]/button")));
-                if(driver.FindElement(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")) != null)
+                driver.FindElement(By.XPath("//*[@id=\"txt_username\"]")).SendKeys(username);
+                driver.FindElement(By.Id("txt_password")).SendKeys(password);
+
+                if (!fakeCaptchaSubmitted)
                 {
-                    return;
+                    driver.FindElement(By.Id("txtCaptcha")).SendKeys("XXXXXX");
+                    driver.FindElement(By.Id("btnLogin")).Click();
+                    fakeCaptchaSubmitted = true;
                 }
-                error = false;
-            }
-            catch
-            {
-                error = true;
+                else
+                {
+                    driver.FindElement(By.Id("txtCaptcha")).SendKeys("");
+                }
+
+                // Exit click
+
                 try
                 {
-                    driver.SwitchTo().Alert().Accept();
+                    waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"A1\"]|//*[@id=\"Div2FA\"]/div/div/div[3]/button")));
+                    if (driver.FindElement(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")) != null)
+                    {
+                        return;
+                    }
+                    error = false;
                 }
                 catch
                 {
                     error = true;
+                    try
+                    {
+                        driver.SwitchTo().Alert().Accept();
+                    }
+                    catch
+                    {
+                        error = true;
+                    }
+                    fillCredentials(driver, username, password);
                 }
-                fillCredentials(driver, username, password);
+            }
+            catch
+            {
+
             }
 
             try
@@ -1081,17 +1092,34 @@ namespace Office_Manager
 
                 fillCredentials(driver, username, password);
 
+                try
+                {
+                    driver.SwitchTo().Alert().Accept();
+                }
+                catch
+                {
+                    
+                }
                 // Dismiss alert
 
                 WebDriverWait waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
 
-                waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")));
-                driver.FindElement(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")).Click();
+                //waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")));
+                //driver.FindElement(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")).Click();
 
                 // E-Waybill click
 
                 waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
-                waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")));
+
+                try
+                {
+                    waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")));
+                }
+                catch
+                {
+                    driver.SwitchTo().Alert().Accept();
+                    waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")));
+                }
 
             try
             {
@@ -1345,12 +1373,69 @@ namespace Office_Manager
 
                     fillCredentials(driver, username, password);
 
+
+
+
+
+
+
+                try
+                {
+                    driver.SwitchTo().Alert().Accept();
+                }
+                catch
+                {
+                    
+                }
+                // Dismiss alert
+
+                WebDriverWait waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
+
+
+                // E-Waybill click
+
+                waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
+
+                    try
+                    {
+                        waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")));
+                    }
+                    catch
+                    {
+                        driver.SwitchTo().Alert().Accept();
+                        waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")));
+                    }
+
+                    
+            try
+            {
+                driver.FindElement(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")).Click();
+            } catch
+            {
+                Thread.Sleep(500);
+                driver.FindElement(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")).Click();
+
+                waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
+                waitForElement.Until(ExpectedConditions.InvisibilityOfElementLocated(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")));
+
+                driver.FindElement(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")).Click();
+            }
+
+
+
+
+
+
+
+
+
+
+
                     // Dismiss alert
 
-                    WebDriverWait waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
 
-                    waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")));
-                    driver.FindElement(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")).Click();
+                    //waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")));
+                    //driver.FindElement(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")).Click();
 
                     foreach (string billId in eWayBillIds.Keys)
                     {
@@ -1456,6 +1541,11 @@ namespace Office_Manager
         private void button5_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void button13_Click(object sender, EventArgs e)
+        {
+            new EWBCredential(company).Show();
         }
     }
 }
