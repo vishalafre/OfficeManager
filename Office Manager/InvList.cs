@@ -1547,5 +1547,10 @@ namespace Office_Manager
         {
             new EWBCredential(company).Show();
         }
+
+        private void button14_Click(object sender, EventArgs e)
+        {
+            new GenerateEInvoice(company).Show();
+        }
     }
 }

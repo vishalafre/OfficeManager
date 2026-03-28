@@ -60,6 +60,7 @@
             this.pictureBox3 = new System.Windows.Forms.PictureBox();
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.button14 = new System.Windows.Forms.Button();
             this.invHistory.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox3)).BeginInit();
@@ -324,7 +325,7 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(609, 646);
+            this.button1.Location = new System.Drawing.Point(556, 646);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(116, 31);
             this.button1.TabIndex = 58;
@@ -334,7 +335,7 @@
             // 
             // button6
             // 
-            this.button6.Location = new System.Drawing.Point(732, 646);
+            this.button6.Location = new System.Drawing.Point(679, 646);
             this.button6.Name = "button6";
             this.button6.Size = new System.Drawing.Size(116, 31);
             this.button6.TabIndex = 59;
@@ -348,7 +349,7 @@
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(487, 646);
+            this.button2.Location = new System.Drawing.Point(434, 646);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(116, 31);
             this.button2.TabIndex = 61;
@@ -381,11 +382,11 @@
             // 
             // button13
             // 
-            this.button13.Location = new System.Drawing.Point(854, 646);
+            this.button13.Location = new System.Drawing.Point(801, 646);
             this.button13.Name = "button13";
             this.button13.Size = new System.Drawing.Size(116, 31);
             this.button13.TabIndex = 66;
-            this.button13.Text = "EWB Credentials";
+            this.button13.Text = "Credentials";
             this.button13.UseVisualStyleBackColor = true;
             this.button13.Click += new System.EventHandler(this.button13_Click);
             // 
@@ -426,6 +427,16 @@
             this.pictureBox1.TabStop = false;
             this.pictureBox1.Click += new System.EventHandler(this.pictureBox1_Click);
             // 
+            // button14
+            // 
+            this.button14.Location = new System.Drawing.Point(923, 646);
+            this.button14.Name = "button14";
+            this.button14.Size = new System.Drawing.Size(116, 31);
+            this.button14.TabIndex = 67;
+            this.button14.Text = "eInvoice JSON";
+            this.button14.UseVisualStyleBackColor = true;
+            this.button14.Click += new System.EventHandler(this.button14_Click);
+            // 
             // InvList
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -433,6 +444,7 @@
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(192)))));
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(1370, 749);
+            this.Controls.Add(this.button14);
             this.Controls.Add(this.button13);
             this.Controls.Add(this.button12);
             this.Controls.Add(this.button11);
@@ -499,5 +511,6 @@
         private System.Windows.Forms.Button button11;
         private System.Windows.Forms.Button button12;
         private System.Windows.Forms.Button button13;
+        private System.Windows.Forms.Button button14;
     }
 }

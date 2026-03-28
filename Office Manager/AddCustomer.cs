@@ -44,15 +44,17 @@ namespace Office_Manager
                 dist = distance.Text;
             }
             con.Open();
-            SqlCommand cmd = new SqlCommand("insert into CUSTOMER (FIRM, CNAME, GSTIN, ADDRESS, CITY, DISTANCE, TALLY_LEDGER) values(@FIRM, @CNAME, " +
-                "@GSTIN, @ADDRESS, @CITY, "+ dist + ", @TALLY_LEDGER)", con);
+            SqlCommand cmd = new SqlCommand("insert into CUSTOMER (FIRM, CNAME, GSTIN, ADDRESS, CITY, DISTANCE, TALLY_LEDGER, PINCODE) values(@FIRM, @CNAME, " +
+                "@GSTIN, @ADDRESS, @CITY, "+ dist + ", @TALLY_LEDGER, @PIN)", con);
             cmd.Parameters.AddWithValue("@FIRM", company);
             cmd.Parameters.AddWithValue("@CNAME", textBox1.Text);
             cmd.Parameters.AddWithValue("@GSTIN", textBox2.Text);
             cmd.Parameters.AddWithValue("@CITY", city.Text);
             cmd.Parameters.AddWithValue("@TALLY_LEDGER", textBox4.Text);
+            cmd.Parameters.AddWithValue("@PIN", pin.Text);
+            cmd.Parameters.AddWithValue("@ADDRESS", textBox3.Text);
 
-            String address = "";
+            /*String address = "";
             if(pin.Text.Equals(""))
             {
                 if (textBox3.Text == "")
@@ -75,7 +77,7 @@ namespace Office_Manager
                 }
             }
 
-            cmd.Parameters.AddWithValue("@ADDRESS", address);
+            cmd.Parameters.AddWithValue("@ADDRESS", address);*/
             int i = cmd.ExecuteNonQuery();
 
             con.Close();
@@ -207,7 +209,10 @@ namespace Office_Manager
                         city.Text = oReader["CITY"].ToString();
                         distance.Text = oReader["DISTANCE"].ToString();
                         textBox4.Text = oReader["TALLY_LEDGER"].ToString();
+                        textBox3.Text = oReader["ADDRESS"].ToString();
+                        pin.Text = oReader["PINCODE"].ToString();
 
+                        /*
                         string addr = oReader["ADDRESS"].ToString();
                         string[] addrParts = addr.Split(',');
                         string cityInfo = addrParts[addrParts.Length - 1];
@@ -218,7 +223,7 @@ namespace Office_Manager
                         if (addr.Contains(","))
                         {
                             textBox3.Text = addr.Replace("," + cityInfo, "").Trim();
-                        }
+                        }*/
                     }
                 }
                 con.Close();
@@ -235,15 +240,17 @@ namespace Office_Manager
             }
 
             con.Open();
-            SqlCommand cmd = new SqlCommand("update CUSTOMER set CNAME = @CNAME, GSTIN = @GSTIN, ADDRESS = @ADDRESS, CITY = @CITY, DISTANCE = "+ dist + ", TALLY_LEDGER = @TALLY_LEDGER WHERE CID = @CID AND FIRM = @FIRM", con);
+            SqlCommand cmd = new SqlCommand("update CUSTOMER set CNAME = @CNAME, PINCODE = @PINCODE, GSTIN = @GSTIN, ADDRESS = @ADDRESS, CITY = @CITY, DISTANCE = "+ dist + ", TALLY_LEDGER = @TALLY_LEDGER WHERE CID = @CID AND FIRM = @FIRM", con);
             cmd.Parameters.AddWithValue("@CID", cid);
             cmd.Parameters.AddWithValue("@CNAME", textBox1.Text);
             cmd.Parameters.AddWithValue("@GSTIN", textBox2.Text);
             cmd.Parameters.AddWithValue("@CITY", city.Text);
             cmd.Parameters.AddWithValue("@FIRM", company);
             cmd.Parameters.AddWithValue("@TALLY_LEDGER", textBox4.Text);
+            cmd.Parameters.AddWithValue("@ADDRESS", textBox3.Text);
+            cmd.Parameters.AddWithValue("@PINCODE", pin.Text);
 
-            String address = "";
+            /*String address = "";
             if (pin.Text.Equals(""))
             {
                 if (textBox3.Text == "")
@@ -267,7 +274,7 @@ namespace Office_Manager
                 }
             }
 
-            cmd.Parameters.AddWithValue("@ADDRESS", address);
+            cmd.Parameters.AddWithValue("@ADDRESS", address);*/
             int i = cmd.ExecuteNonQuery();
 
             con.Close();
