@@ -17,6 +17,11 @@ using System.Text.RegularExpressions;
 using Office_Manager;
 using System.Net;
 using Newtonsoft.Json;
+using QRCoder;
+using NPOI.SS.Formula.Functions;
+using System.Data.SqlTypes;
+using System.Drawing.Imaging;
+using System.Drawing.Drawing2D;
 
 namespace Office_Manager
 {
@@ -57,6 +62,8 @@ namespace Office_Manager
         string mDiscount;
 
         int txnFlag;        //1: update     //2: save
+        string signedInvoice = "";
+        private byte[] qrBytes;
 
         public AddInvoice(String cName, byte[] logoPath)
         {
@@ -371,24 +378,24 @@ namespace Office_Manager
                 TextBox cMtr = (TextBox)panel1.Controls.Find("mtr" + i, true)[0];
                 TextBox cRate = (TextBox)panel1.Controls.Find("rate" + i, true)[0];
                 ComboBox cItem = (ComboBox)panel1.Controls.Find("item" + i, true)[0];
-                TextBox cWeight = (TextBox)panel1.Controls.Find("weight" + i, true)[0];
-                TextBox cWidth = (TextBox)panel1.Controls.Find("width" + i, true)[0];
+                //TextBox cWeight = (TextBox)panel1.Controls.Find("weight" + i, true)[0];
+                //TextBox cWidth = (TextBox)panel1.Controls.Find("width" + i, true)[0];
 
                 TextBox cRollPrev = (TextBox)panel1.Controls.Find("rollNo" + (i - 1), true)[0];
                 TextBox cQtyPrev = (TextBox)panel1.Controls.Find("qty" + (i - 1), true)[0];
                 TextBox cMtrPrev = (TextBox)panel1.Controls.Find("mtr" + (i - 1), true)[0];
                 TextBox cRatePrev = (TextBox)panel1.Controls.Find("rate" + (i - 1), true)[0];
                 ComboBox cItemPrev = (ComboBox)panel1.Controls.Find("item" + (i - 1), true)[0];
-                TextBox cWeightPrev = (TextBox)panel1.Controls.Find("weight" + (i - 1), true)[0];
-                TextBox cWidthPrev = (TextBox)panel1.Controls.Find("width" + (i - 1), true)[0];
+                //TextBox cWeightPrev = (TextBox)panel1.Controls.Find("weight" + (i - 1), true)[0];
+                //TextBox cWidthPrev = (TextBox)panel1.Controls.Find("width" + (i - 1), true)[0];
 
                 cRollPrev.Text = cRoll.Text;
                 cQtyPrev.Text = cQty.Text;
                 cMtrPrev.Text = cMtr.Text;
                 cRatePrev.Text = cRate.Text;
                 cItemPrev.SelectedIndex = cItem.SelectedIndex;
-                cWeightPrev.Text = cWeight.Text;
-                cWidthPrev.Text = cWidth.Text;
+                //cWeightPrev.Text = cWeight.Text;
+                //cWidthPrev.Text = cWidth.Text;
             }
         }
 
@@ -462,7 +469,7 @@ namespace Office_Manager
             }
 
             IWorkbook templateWorkbook;
-            using (FileStream fs = new FileStream(Path.GetDirectoryName(Application.ExecutablePath) + @"\Files\Invoice" + type + " - 2.xlsx", FileMode.Open, FileAccess.ReadWrite))
+            using (FileStream fs = new FileStream(Path.GetDirectoryName(Application.ExecutablePath) + @"\Files\Invoice" + type + " - 4.xlsx", FileMode.Open, FileAccess.ReadWrite))
             {
                 templateWorkbook = new XSSFWorkbook(fs);
                 fs.Close();
@@ -482,11 +489,12 @@ namespace Office_Manager
             sheet.GetRow(2).GetCell(1).SetCellValue(new Regex("\\n+").Replace(cAddress, "\n"));
             sheet.GetRow(4).GetCell(1).SetCellValue("P: " + cMobile);
             sheet.GetRow(5).GetCell(1).SetCellValue("O: " + cOffice);
-            sheet.GetRow(6).GetCell(1).SetCellValue("Email: " + cEmail);
-            sheet.GetRow(2).GetCell(6).SetCellValue(invoiceNo.Text);
-            sheet.GetRow(4).GetCell(6).SetCellValue(invoiceDt.Value.ToString("dd-MMM-yy"));
-            sheet.GetRow(5).GetCell(6).SetCellValue(dueDtTxt);
-            sheet.GetRow(3).GetCell(6).SetCellValue(eWayBill.Text);
+            sheet.GetRow(6).GetCell(1).SetCellValue("E: " + cEmail);
+            sheet.GetRow(3).GetCell(6).SetCellValue(invoiceNo.Text);
+            sheet.GetRow(1).GetCell(5).SetCellValue(irn.Text);
+            sheet.GetRow(5).GetCell(6).SetCellValue(invoiceDt.Value.ToString("dd-MMM-yy"));
+            sheet.GetRow(6).GetCell(6).SetCellValue(dueDtTxt);
+            sheet.GetRow(4).GetCell(6).SetCellValue(eWayBill.Text);
             sheet.GetRow(8).GetCell(1).SetCellValue(((KeyValuePair<string, string>)billTo.SelectedItem).Value);
             sheet.GetRow(8).GetCell(3).SetCellValue(((KeyValuePair<string, string>)shipTo.SelectedItem).Value);
             sheet.GetRow(8).GetCell(6).SetCellValue(((KeyValuePair<string, string>)agt.SelectedItem).Value);
@@ -678,6 +686,8 @@ namespace Office_Manager
             sheet.GetRow(31).GetCell(2).SetCellValue(acNo);
             sheet.GetRow(35).GetCell(5).SetCellValue("(For : " + company + ")");
 
+            // add company logo
+
             int pictureIndex = templateWorkbook.AddPicture(logo, PictureType.PNG);
             ICreationHelper helper = templateWorkbook.GetCreationHelper();
             IDrawing drawing = sheet.CreateDrawingPatriarch();
@@ -686,6 +696,76 @@ namespace Office_Manager
             anchor.Row1 = 0;//0 index based row
             IPicture picture = drawing.CreatePicture(anchor, pictureIndex);
             picture.Resize(1.01, 4.3);
+
+            // add qr
+
+            byte[] qrBytes;
+            int qrSizePixels;
+
+            using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
+            {
+                // ECCLevel.Q is good for long strings
+                QRCodeData qrCodeData = qrGenerator.CreateQrCode(signedInvoice, QRCodeGenerator.ECCLevel.Q);
+
+                // Use the standard QRCode class for more rendering options
+                using (QRCode qrCode = new QRCode(qrCodeData))
+                {
+                    // GetGraphic parameters: 
+                    // pixelsPerModule (20), darkColor, lightColor, drawQuietZones (false)
+                    using (Bitmap qrBitmap = qrCode.GetGraphic(1, Color.Black, Color.White, false))
+                    {
+                        qrSizePixels = (int)(qrBitmap.Width * 1.4);
+
+                        using (Bitmap scaledBitmap = new Bitmap(qrSizePixels, qrSizePixels))
+                        {
+                            using (Graphics g = Graphics.FromImage(scaledBitmap))
+                            {
+                                // IMPORTANT: This prevents the image from getting blurry when scaling!
+                                g.InterpolationMode = InterpolationMode.NearestNeighbor;
+                                g.PixelOffsetMode = PixelOffsetMode.Half;
+
+                                // Draw the base image onto our new scaled bitmap
+                                g.DrawImage(qrBitmap, 0, 0, qrSizePixels, qrSizePixels);
+                            }
+
+                            // 4. Save our newly scaled image to the byte array for NPOI
+                            using (MemoryStream ms = new MemoryStream())
+                            {
+                                scaledBitmap.Save(ms, ImageFormat.Png);
+                                qrBytes = ms.ToArray();
+
+                                File.WriteAllBytes("qr.png", qrBytes);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 1. Add picture to workbook
+            int pictureIndex1 = templateWorkbook.AddPicture(qrBytes, PictureType.PNG);
+            IDrawing patriarch1 = sheet.CreateDrawingPatriarch();
+
+            // 2. Create anchor pointing ONLY to C1 (Col 2, Row 0)
+            IClientAnchor anchor1 = templateWorkbook.GetCreationHelper().CreateClientAnchor();
+            anchor1.Col1 = 2;
+            anchor1.Row1 = 0;
+
+            //anchor1.AnchorType = AnchorType.MoveDontResize;
+
+            // 3. Draw the picture
+            IPicture picture1 = patriarch1.CreatePicture(anchor1, pictureIndex1);
+
+            // 4. Tell NPOI to display it at 100% native scale 
+
+            // 24% X 42% (0.48" X 0.84") - 1.99" X 1.99"
+            double xFactor = 1.0 / 0.42;
+            double yFactor = 1.0 / 0.24;
+
+            // 114,  95   , 106 , 90  , 106  , 94
+            // 2.38, 2.088, 1.97, 2.19, 2.067, 2.199
+            picture1.Resize(xFactor, yFactor);
+
+            // recalculate formula
 
             sheet.ForceFormulaRecalculation = true;
 
@@ -1205,7 +1285,7 @@ namespace Office_Manager
             }
 
             // CHECK DUPLICATE ROLL
-
+            
             string rollNoString = "(";
             int qt = 0;
             for (int j = 0; j < rollCount; j++)
@@ -1350,7 +1430,7 @@ namespace Office_Manager
                 "@BILL_ID, @BILL_DT, " + dueDateTxt + ", @BILL_TO, @SHIP_TO, @TRANSPORTER, " +
                 "@CGST, @SGST, @IGST, @DISCOUNT, @FREIGHT, " +
                 "@AGENT, @LOT_NO, @LR_NO, @EWAYBILL_NO, @CGST_AMT, @SGST_AMT, @IGST_AMT, @NET_AMT, @BILL_AMT, " +
-                "@ROUNDING_PREF)", con);
+                "@ROUNDING_PREF, @IRN, @SIGN)", con);
 
             string roundingPref = ((checkBox1.Checked) ? "1" : "0") +
                 ((checkBox2.Checked) ? "1" : "0") +
@@ -1381,6 +1461,8 @@ namespace Office_Manager
             cmd.Parameters.AddWithValue("@NET_AMT", netAmt);
             cmd.Parameters.AddWithValue("@BILL_AMT", billAmt);
             cmd.Parameters.AddWithValue("@ROUNDING_PREF", roundingPref);
+            cmd.Parameters.AddWithValue("@IRN", irn.Text);
+            cmd.Parameters.AddWithValue("@SIGN", signedInvoice);
             int i = cmd.ExecuteNonQuery();
 
             //Dictionary<double, double> rateMtr = new Dictionary<double, double>();
@@ -1559,7 +1641,7 @@ namespace Office_Manager
                 "@BILL_ID, @BILL_DT, " + dueDateTxt + ", @BILL_TO, @SHIP_TO, @TRANSPORTER, " +
                 "@CGST, @SGST, @IGST, @DISCOUNT, @FREIGHT, " +
                 "@AGENT, @LOT_NO, @LR_NO, @EWAYBILL_NO, @CGST_AMT, @SGST_AMT, @IGST_AMT, @NET_AMT, @BILL_AMT, " +
-                "@ROUNDING_PREF)", con);
+                "@ROUNDING_PREF, NULL)", con);
 
             string roundingPref = ((checkBox1.Checked) ? "1" : "0") +
                 ((checkBox2.Checked) ? "1" : "0") +
@@ -1860,9 +1942,13 @@ namespace Office_Manager
                     if (oReader.Read())
                     {
                         invoiceNo.Text = invNoFromList.ToString();
+                        irn.Text  = oReader["IRN"].ToString();
                         CultureInfo ci = CultureInfo.InvariantCulture;
                         string sysFormat = CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern;
                         invoiceDt.Value = DateTime.ParseExact(oReader["BILL_DT"].ToString().Split(' ')[0], sysFormat, ci);
+
+                        signedInvoice = oReader["SIGNED_INVOICE"].ToString();
+
                         string due = oReader["DUE_DT"].ToString();
                         if (due.Contains(" "))
                         {

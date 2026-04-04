@@ -50,7 +50,7 @@ namespace Office_Manager
 
             using (SqlConnection con = new SqlConnection(connectionStr))
             {
-                string query = "SELECT DISTINCT C1.CID BILL_TO, S1.CID SHIP_TO, B.BILL_ID, B.BILL_DT, CMP.GSTIN SELLER_GSTIN, CMP.CITY SELLER_CITY, CMP.PIN SELLER_PIN, C1.GSTIN CUST_GSTIN, C1.CNAME CUST_NAME, C1.ADDRESS CUST_ADDR1, C1.CITY CUST_CITY, C1.PINCODE CUST_PIN, S1.GSTIN SHIP_GSTIN, S1.CNAME SHIP_NAME, S1.ADDRESS SHIP_ADDR1, S1.CITY SHIP_CITY, S1.PINCODE SHIP_PIN, (SELECT SUM(BII.MTR*BII.RATE) - BB.NET_AMT FROM BILL BB, BILL_ITEM BII WHERE BB.BILL_ID = BII.BILL_ID AND B.BILL_ID = BB.BILL_ID GROUP BY BB.NET_AMT) DISCOUNT, B.NET_AMT, B.ISGT IGST_RATE, B.CGST_AMT, B.SGST_AMT, B.IGST_AMT, B.CGST CGST_RATE, B.SGST SGST_RATE, (B.BILL_AMT - (B.NET_AMT + B.CGST + B.SGST_AMT + B.IGST_AMT)) ROUND_OFF, B.BILL_AMT, T1.TRANS_ID TRANS_GSTIN, T1.T_NAME TRANS_NAME, S1.DISTANCE, I.HSN ITEM_HSN, LEFT(I.UNIT, CHARINDEX('-', I.UNIT) - 1) AS ITEM_UNIT, BI.ROLL_NO, BI.MTR ITEM_QTY, BI.RATE ITEM_RATE, BI.AMOUNT ITEM_AMOUNT FROM BILL B, CUSTOMER C1, CUSTOMER S1, COMPANY CMP, BILL_ITEM BI, ITEM I, TRANSPORT T1 WHERE I.ITEM_ID = BI.ITEM AND C1.CID = B.BILL_TO AND CMP.NAME = B.FIRM AND B.SHIP_TO = S1.CID AND B.TRANSPORTER = T1.TID AND B.BILL_ID = BI.BILL_ID AND B.FIRM = @FIRM AND B.BILL_ID IN " + input;
+                string query = "SELECT DISTINCT C1.CID BILL_TO, S1.CID SHIP_TO, B.BILL_ID, B.BILL_DT, CMP.GSTIN SELLER_GSTIN, CMP.CITY SELLER_CITY, CMP.PIN SELLER_PIN, C1.GSTIN CUST_GSTIN, C1.CNAME CUST_NAME, C1.ADDRESS CUST_ADDR1, C1.CITY CUST_CITY, C1.PINCODE CUST_PIN, S1.GSTIN SHIP_GSTIN, S1.CNAME SHIP_NAME, S1.ADDRESS SHIP_ADDR1, S1.CITY SHIP_CITY, S1.PINCODE SHIP_PIN, (SELECT SUM(BII.MTR*BII.RATE) - BB.NET_AMT FROM BILL BB, BILL_ITEM BII WHERE BB.BILL_ID = BII.BILL_ID AND B.BILL_ID = BB.BILL_ID GROUP BY BB.NET_AMT) DISCOUNT, B.DISCOUNT DISC_PER, B.NET_AMT, B.ISGT IGST_RATE, B.CGST_AMT, B.SGST_AMT, B.IGST_AMT, B.CGST CGST_RATE, B.SGST SGST_RATE, (B.BILL_AMT - (B.NET_AMT + B.CGST + B.SGST_AMT + B.IGST_AMT)) ROUND_OFF, B.BILL_AMT, T1.TRANS_ID TRANS_GSTIN, T1.T_NAME TRANS_NAME, S1.DISTANCE, I.HSN ITEM_HSN, LEFT(I.UNIT, CHARINDEX('-', I.UNIT) - 1) AS ITEM_UNIT, BI.ROLL_NO, BI.MTR ITEM_QTY, BI.RATE ITEM_RATE, BI.AMOUNT ITEM_AMOUNT FROM BILL B, CUSTOMER C1, CUSTOMER S1, COMPANY CMP, BILL_ITEM BI, ITEM I, TRANSPORT T1 WHERE I.ITEM_ID = BI.ITEM AND C1.CID = B.BILL_TO AND CMP.NAME = B.FIRM AND B.SHIP_TO = S1.CID AND B.TRANSPORTER = T1.TID AND B.BILL_ID = BI.BILL_ID AND B.FIRM = @FIRM AND B.BILL_ID IN " + input;
                 using (SqlCommand oCmd = new SqlCommand(query, con))
                 {
                     oCmd.Parameters.AddWithValue("@FIRM", firm);
@@ -100,6 +100,7 @@ namespace Office_Manager
 
                     decimal netAmount = Convert.ToDecimal(firstRow["NET_AMT"]);
                     decimal discAmount = Convert.ToDecimal(firstRow["DISCOUNT"]);
+                    decimal discPer = Convert.ToDecimal(firstRow["DISC_PER"]);
                     mDiscAmount = discAmount;
 
                     DateTime parsedDate;
@@ -116,7 +117,7 @@ namespace Office_Manager
                     var itemList = new List<object>();
 
                     // Track running totals of GST applied to items
-                    decimal sumPrevIgst = 0, sumPrevCgst = 0, sumPrevSgst = 0;
+                    decimal sumPrevIgst = 0, sumPrevCgst = 0, sumPrevSgst = 0, sumPrevDiscount = 0;
 
                     // Loop through the items of this specific invoice
                     for (int i = 0; i < billRows.Count; i++)
@@ -143,12 +144,29 @@ namespace Office_Manager
                         decimal cgstRate = row["CGST_RATE"] == DBNull.Value ? 0m : Convert.ToDecimal(row["CGST_RATE"]);
                         decimal sgstRate = row["SGST_RATE"] == DBNull.Value ? 0m : Convert.ToDecimal(row["SGST_RATE"]);
 
+                        totalAmt = assAmt;
+                        if (mDiscAmount > 0)
+                        {
+                            if(isLastItem)
+                            {
+                                discAmount = mDiscAmount - sumPrevDiscount;
+                            }
+                            else
+                            {
+                                discAmount = Math.Round(discPer * totalAmt / 100, 2);
+                                sumPrevDiscount += discAmount;
+                            }
+                            
+                            assAmt = totalAmt - discAmount;
+                        }
+
                         // --- CHANGES 2, 3 & 4: Calculate Item GST (Rounded to 2 decimals) ---
                         decimal itemIgstAmt = Math.Round((igstRate * assAmt) / 100m, 2, MidpointRounding.AwayFromZero);
                         decimal itemCgstAmt = Math.Round((cgstRate * assAmt) / 100m, 2, MidpointRounding.AwayFromZero);
                         decimal itemSgstAmt = Math.Round((sgstRate * assAmt) / 100m, 2, MidpointRounding.AwayFromZero);
 
                         // --- CHANGE 6: Rounding Reconciliation on the Last Item ---
+
                         if (isLastItem)
                         {
                             // Force the last item to absorb any penny differences
@@ -156,17 +174,18 @@ namespace Office_Manager
                             if (headerCgstVal > 0 || sumPrevCgst > 0) itemCgstAmt = headerCgstVal - sumPrevCgst;
                             if (headerSgstVal > 0 || sumPrevSgst > 0) itemSgstAmt = headerSgstVal - sumPrevSgst;
 
-                            totalAmt = assAmt;
+                            /*totalAmt = assAmt;
                             if (mDiscAmount > 0)
                             {
                                 assAmt -= mDiscAmount;
                             }
-                            discAmount = mDiscAmount;
+                            discAmount = mDiscAmount;*/
                         }
                         else
                         {
-                            discAmount = 0;
-                            totalAmt = assAmt;
+                            /*discAmount = 0;
+                            totalAmt = assAmt;*/
+
                             // Keep summing up the amounts for previous items
                             sumPrevIgst += itemIgstAmt;
                             sumPrevCgst += itemCgstAmt;
@@ -269,14 +288,14 @@ namespace Office_Manager
                             SgstVal = headerSgstVal,
                             CesVal = 0,
                             StCesVal = 0,
-                            Discount = mDiscAmount,
+                            Discount = 0,
                             OthChrg = 0,
                             RndOffAmt = roundOff,
                             TotInvVal = Math.Round(billAmt),
                             TotInvValFc = 0
                         },
                         ExpDtls = (object)null,
-                        EwbDtls = new
+                        EwbDtls = (headerCgstVal > 0) ? (object)null : new
                         {
                             TransId = firstRow["TRANS_GSTIN"].ToString(),
                             TransName = firstRow["TRANS_NAME"].ToString(),
@@ -309,6 +328,82 @@ namespace Office_Manager
                 MessageBox.Show("No records found for this query.");
             }
         }
+
+        public String parseBillIds(String data)
+        {
+            string output = "";
+            string[] parts = data.Split(':');
+
+            int num1;
+            if (!Int32.TryParse(parts[0].Trim(), out num1))
+            {
+                num1 = Int32.Parse(parts[0].Trim().Split('/')[2]);
+            }
+
+            int num2;
+            if (!Int32.TryParse(parts[1].Trim(), out num2))
+            {
+                num2 = Int32.Parse(parts[1].Trim().Split('/')[2]);
+            }
+
+            // get prefix
+
+            string sDate = DateTime.Now.ToString();
+            DateTime datevalue = (Convert.ToDateTime(sDate.ToString()));
+            int month = Int32.Parse(datevalue.Month.ToString());
+
+            int year = Int32.Parse(datevalue.Year.ToString().Substring(datevalue.Year.ToString().Length - 2)) - 1;
+            if (month > 3)
+            {
+                year++;
+            }
+
+            string yearInit = year + "-" + (year + 1);
+
+            String compInit;
+            switch (firm.Substring(0, 1))
+            {
+                case "A":
+                    compInit = "AE";
+                    break;
+
+                case "E":
+                    compInit = "ET";
+                    break;
+
+                default:
+                    compInit = "XX";
+                    break;
+            }
+
+            string prefix = compInit + "/" + yearInit + "/";
+
+            //string prefix = parts[0].Split('-')[0].Trim();
+
+            for (int i = num1; i <= num2; i++)
+            {
+                string billId = i + "";
+                if ((i + "").Length == 1)
+                {
+                    billId = "00" + i;
+                }
+                else if ((i + "").Length == 2)
+                {
+                    billId = "0" + i;
+                }
+                /*
+                string numPrefix = "";
+                if (i < 100)
+                {
+                    int n = (3 - i.ToString().Length) * 10;
+                    numPrefix = n.ToString().Substring(1);
+                }*/
+                output += "'" + prefix + billId + "', ";
+            }
+
+            return output;
+        }
+
         private string formatBillIds(string data)
         {
             String input = "(";
@@ -321,7 +416,7 @@ namespace Office_Manager
                 {
                     if (s.Contains(":"))
                     {
-                        string p1 = TallyXML.parseBillIds(s);
+                        string p1 = parseBillIds(s);
                         input += p1;
                     }
                     else
@@ -375,7 +470,7 @@ namespace Office_Manager
             {
                 if (data.Contains(":"))
                 {
-                    string p1 = TallyXML.parseBillIds(data);
+                    string p1 = parseBillIds(data);
                     input += p1;
                 }
                 else if (data.Contains(","))

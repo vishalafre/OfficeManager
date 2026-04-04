@@ -34,15 +34,17 @@
             this.label2 = new System.Windows.Forms.Label();
             this.password = new System.Windows.Forms.TextBox();
             this.beam = new System.Windows.Forms.Label();
-            this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
-            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.eInvPassword = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
-            this.textBox2 = new System.Windows.Forms.TextBox();
+            this.eInvUsername = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // updateBtn
             // 
+            this.updateBtn.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.updateBtn.Location = new System.Drawing.Point(241, 193);
             this.updateBtn.Name = "updateBtn";
             this.updateBtn.Size = new System.Drawing.Size(115, 36);
@@ -86,24 +88,14 @@
             // beam
             // 
             this.beam.AutoSize = true;
-            this.beam.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.beam.Font = new System.Drawing.Font("Arial", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.beam.ForeColor = System.Drawing.Color.OliveDrab;
             this.beam.Location = new System.Drawing.Point(129, 47);
             this.beam.Name = "beam";
-            this.beam.Size = new System.Drawing.Size(81, 19);
+            this.beam.Size = new System.Drawing.Size(0, 18);
             this.beam.TabIndex = 35;
-            this.beam.Text = "E-WayBill";
             this.beam.Visible = false;
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Font = new System.Drawing.Font("Arial", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(446, 47);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(73, 19);
-            this.label3.TabIndex = 40;
-            this.label3.Text = "eInvoice";
-            this.label3.Visible = false;
+            this.beam.Click += new System.EventHandler(this.beam_Click);
             // 
             // label4
             // 
@@ -114,12 +106,12 @@
             this.label4.TabIndex = 39;
             this.label4.Text = "Password";
             // 
-            // textBox1
+            // eInvPassword
             // 
-            this.textBox1.Location = new System.Drawing.Point(403, 111);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(207, 20);
-            this.textBox1.TabIndex = 38;
+            this.eInvPassword.Location = new System.Drawing.Point(403, 111);
+            this.eInvPassword.Name = "eInvPassword";
+            this.eInvPassword.Size = new System.Drawing.Size(207, 20);
+            this.eInvPassword.TabIndex = 38;
             // 
             // label5
             // 
@@ -130,12 +122,32 @@
             this.label5.TabIndex = 37;
             this.label5.Text = "Username";
             // 
-            // textBox2
+            // eInvUsername
             // 
-            this.textBox2.Location = new System.Drawing.Point(403, 85);
-            this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(207, 20);
-            this.textBox2.TabIndex = 36;
+            this.eInvUsername.Location = new System.Drawing.Point(403, 85);
+            this.eInvUsername.Name = "eInvUsername";
+            this.eInvUsername.Size = new System.Drawing.Size(207, 20);
+            this.eInvUsername.TabIndex = 36;
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label6.Location = new System.Drawing.Point(160, 46);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(46, 18);
+            this.label6.TabIndex = 41;
+            this.label6.Text = "EWB";
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label3.Location = new System.Drawing.Point(448, 46);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(70, 18);
+            this.label3.TabIndex = 42;
+            this.label3.Text = "eInvoice";
             // 
             // EWBCredential
             // 
@@ -143,10 +155,11 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(642, 264);
             this.Controls.Add(this.label3);
+            this.Controls.Add(this.label6);
             this.Controls.Add(this.label4);
-            this.Controls.Add(this.textBox1);
+            this.Controls.Add(this.eInvPassword);
             this.Controls.Add(this.label5);
-            this.Controls.Add(this.textBox2);
+            this.Controls.Add(this.eInvUsername);
             this.Controls.Add(this.beam);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.password);
@@ -169,10 +182,11 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox password;
         private System.Windows.Forms.Label beam;
-        private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.TextBox eInvPassword;
         private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.TextBox textBox2;
+        private System.Windows.Forms.TextBox eInvUsername;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label label3;
     }
 }

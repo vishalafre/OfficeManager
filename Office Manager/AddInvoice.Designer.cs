@@ -106,6 +106,8 @@
             this.checkBox4 = new System.Windows.Forms.CheckBox();
             this.checkBox5 = new System.Windows.Forms.CheckBox();
             this.button1 = new System.Windows.Forms.Button();
+            this.irn = new System.Windows.Forms.TextBox();
+            this.label10 = new System.Windows.Forms.Label();
             this.addInv.SuspendLayout();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -125,6 +127,8 @@
             // addInv
             // 
             this.addInv.BackColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.addInv.Controls.Add(this.irn);
+            this.addInv.Controls.Add(this.label10);
             this.addInv.Controls.Add(this.eWayBill);
             this.addInv.Controls.Add(this.label14);
             this.addInv.Controls.Add(this.agt);
@@ -928,6 +932,23 @@
             this.button1.UseVisualStyleBackColor = false;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
+            // irn
+            // 
+            this.irn.Location = new System.Drawing.Point(742, 209);
+            this.irn.Name = "irn";
+            this.irn.Size = new System.Drawing.Size(290, 20);
+            this.irn.TabIndex = 63;
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label10.Location = new System.Drawing.Point(566, 209);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(34, 17);
+            this.label10.TabIndex = 64;
+            this.label10.Text = "IRN";
+            // 
             // AddInvoice
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1045,5 +1066,7 @@
         private System.Windows.Forms.ComboBox godown;
         private System.Windows.Forms.Label godownLbl;
         private System.Windows.Forms.Label label16;
+        private System.Windows.Forms.TextBox irn;
+        private System.Windows.Forms.Label label10;
     }
 }

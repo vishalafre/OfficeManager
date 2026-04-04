@@ -27,6 +27,81 @@ namespace Office_Manager
             AcceptButton = button1;
         }
 
+        public String parseBillIds(String data)
+        {
+            string output = "";
+            string[] parts = data.Split(':');
+
+            int num1;
+            if (!Int32.TryParse(parts[0].Trim(), out num1))
+            {
+                num1 = Int32.Parse(parts[0].Trim().Split('/')[2]);
+            }
+
+            int num2;
+            if (!Int32.TryParse(parts[1].Trim(), out num2))
+            {
+                num2 = Int32.Parse(parts[1].Trim().Split('/')[2]);
+            }
+
+            // get prefix
+
+            string sDate = DateTime.Now.ToString();
+            DateTime datevalue = (Convert.ToDateTime(sDate.ToString()));
+            int month = Int32.Parse(datevalue.Month.ToString());
+
+            int year = Int32.Parse(datevalue.Year.ToString().Substring(datevalue.Year.ToString().Length - 2)) - 1;
+            if (month > 3)
+            {
+                year++;
+            }
+
+            string yearInit = year + "-" + (year + 1);
+
+            String compInit;
+            switch (firm.Substring(0, 1))
+            {
+                case "A":
+                    compInit = "AE";
+                    break;
+
+                case "E":
+                    compInit = "ET";
+                    break;
+
+                default:
+                    compInit = "XX";
+                    break;
+            }
+
+            string prefix = compInit + "/" + yearInit + "/";
+
+            //string prefix = parts[0].Split('-')[0].Trim();
+
+            for (int i = num1; i <= num2; i++)
+            {
+                string billId = i + "";
+                if ((i + "").Length == 1)
+                {
+                    billId = "00" + i;
+                }
+                else if ((i + "").Length == 2)
+                {
+                    billId = "0" + i;
+                }
+                /*
+                string numPrefix = "";
+                if (i < 100)
+                {
+                    int n = (3 - i.ToString().Length) * 10;
+                    numPrefix = n.ToString().Substring(1);
+                }*/
+                output += "'" + prefix + billId + "', ";
+            }
+
+            return output;
+        }
+
         private void button1_Click(object sender, EventArgs e)
         {/*
             if(!textBox1.Text.Contains("-"))
@@ -291,7 +366,7 @@ namespace Office_Manager
                 {
                     if (s.Contains(":"))
                     {
-                        string p1 = TallyXML.parseBillIds(s);
+                        string p1 = parseBillIds(s);
                         input += p1;
                     }
                     else
@@ -352,7 +427,7 @@ namespace Office_Manager
             {
                 if (data.Contains(":"))
                 {
-                    string p1 = TallyXML.parseBillIds(data);
+                    string p1 = parseBillIds(data);
                     input += p1;
                 }
                 else if (data.Contains(","))

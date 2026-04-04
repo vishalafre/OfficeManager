@@ -209,8 +209,8 @@ namespace Office_Manager
                         city.Text = oReader["CITY"].ToString();
                         distance.Text = oReader["DISTANCE"].ToString();
                         textBox4.Text = oReader["TALLY_LEDGER"].ToString();
-                        textBox3.Text = oReader["ADDRESS"].ToString();
                         pin.Text = oReader["PINCODE"].ToString();
+                        textBox3.Text = oReader["ADDRESS"].ToString();
 
                         /*
                         string addr = oReader["ADDRESS"].ToString();

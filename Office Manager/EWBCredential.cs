@@ -26,7 +26,7 @@ namespace Office_Manager
         {
             CenterToScreen();
 
-            String query = "SELECT EWB_USERNAME, EWB_PASSWORD FROM COMPANY WHERE NAME = @FIRM";
+            String query = "SELECT EWB_USERNAME, EINV_USERNAME, EWB_PASSWORD, EINV_PASSWORD FROM COMPANY WHERE NAME = @FIRM";
             SqlCommand oCmd = new SqlCommand(query, con);
             oCmd.Parameters.AddWithValue("@FIRM", firm);
             con.Open();
@@ -37,6 +37,9 @@ namespace Office_Manager
                 {
                     username.Text = oReader["EWB_USERNAME"].ToString();
                     password.Text = oReader["EWB_PASSWORD"].ToString();
+
+                    eInvUsername.Text = oReader["EINV_USERNAME"].ToString();
+                    eInvPassword.Text = oReader["EINV_PASSWORD"].ToString();
                 }
             }
 
@@ -49,15 +52,28 @@ namespace Office_Manager
 
             // Delete FROM SUPPLY_CONE
 
-            SqlCommand cmd = new SqlCommand("UPDATE COMPANY SET EWB_USERNAME = @USERNAME, EWB_PASSWORD = @PASSWORD WHERE NAME = @FIRM", con);
+            SqlCommand cmd = new SqlCommand("UPDATE COMPANY SET EWB_USERNAME = @USERNAME, EWB_PASSWORD = @PASSWORD, EINV_USERNAME = @E_USERNAME, EINV_PASSWORD = @E_PASSWORD WHERE NAME = @FIRM", con);
             cmd.Parameters.AddWithValue("@FIRM", firm);
             cmd.Parameters.AddWithValue("@USERNAME", username.Text);
             cmd.Parameters.AddWithValue("@PASSWORD", password.Text);
+            cmd.Parameters.AddWithValue("@E_USERNAME", eInvUsername.Text);
+            cmd.Parameters.AddWithValue("@E_PASSWORD", eInvPassword.Text);
             cmd.ExecuteNonQuery();
 
             con.Close();
 
-            MessageBox.Show("E-waybill credentials updated");
+            MessageBox.Show("Credentials updated");
+            Close();
+        }
+
+        private void beam_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label3_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
