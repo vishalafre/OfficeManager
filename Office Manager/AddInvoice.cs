@@ -484,35 +484,35 @@ namespace Office_Manager
             string amountInWords = NumberToWords.ConvertAmount(billAmt);
 
             ISheet sheet = templateWorkbook.GetSheet("AFRE");
-            sheet.GetRow(0).GetCell(1).SetCellValue(company);
-            sheet.GetRow(1).GetCell(1).SetCellValue("GSTIN : " + cGstin);
-            sheet.GetRow(2).GetCell(1).SetCellValue(new Regex("\\n+").Replace(cAddress, "\n"));
-            sheet.GetRow(4).GetCell(1).SetCellValue("P: " + cMobile);
-            sheet.GetRow(5).GetCell(1).SetCellValue("O: " + cOffice);
-            sheet.GetRow(6).GetCell(1).SetCellValue("E: " + cEmail);
+            sheet.GetRow(1).GetCell(1).SetCellValue(company);
+            sheet.GetRow(2).GetCell(1).SetCellValue("GSTIN : " + cGstin);
+            sheet.GetRow(3).GetCell(1).SetCellValue(new Regex("\\n+").Replace(cAddress, "\n"));
+            sheet.GetRow(5).GetCell(1).SetCellValue("P: " + cMobile);
+            sheet.GetRow(6).GetCell(1).SetCellValue("O: " + cOffice);
+            sheet.GetRow(7).GetCell(1).SetCellValue("E: " + cEmail);
             sheet.GetRow(3).GetCell(6).SetCellValue(invoiceNo.Text);
-            sheet.GetRow(1).GetCell(5).SetCellValue(irn.Text);
+            sheet.GetRow(0).GetCell(0).SetCellValue("IRN: " + irn.Text);
             sheet.GetRow(5).GetCell(6).SetCellValue(invoiceDt.Value.ToString("dd-MMM-yy"));
             sheet.GetRow(6).GetCell(6).SetCellValue(dueDtTxt);
             sheet.GetRow(4).GetCell(6).SetCellValue(eWayBill.Text);
-            sheet.GetRow(8).GetCell(1).SetCellValue(((KeyValuePair<string, string>)billTo.SelectedItem).Value);
-            sheet.GetRow(8).GetCell(3).SetCellValue(((KeyValuePair<string, string>)shipTo.SelectedItem).Value);
-            sheet.GetRow(8).GetCell(6).SetCellValue(((KeyValuePair<string, string>)agt.SelectedItem).Value);
-            sheet.GetRow(9).GetCell(1).SetCellValue(bGstin);
-            sheet.GetRow(9).GetCell(3).SetCellValue(sGstin);
-            sheet.GetRow(9).GetCell(7).SetCellValue(((KeyValuePair<string, string>)transporter.SelectedItem).Value);
-            sheet.GetRow(10).GetCell(1).SetCellValue(bAddress);
-            sheet.GetRow(10).GetCell(3).SetCellValue(sAddress);
-            sheet.GetRow(10).GetCell(7).SetCellValue(lrNo.Text);
-            sheet.GetRow(11).GetCell(7).SetCellValue(lotNo.Text);
-            sheet.GetRow(26).GetCell(7).SetCellValue(netAmt);
-            sheet.GetRow(28).GetCell(7).SetCellValue(cgstAmt);
-            sheet.GetRow(29).GetCell(7).SetCellValue(sgstAmt);
-            sheet.GetRow(30).GetCell(7).SetCellValue(igstAmt);
-            sheet.GetRow(31).GetCell(7).SetCellValue(totalTax);
-            sheet.GetRow(32).GetCell(6).SetCellValue(roundOff);
-            sheet.GetRow(33).GetCell(6).SetCellValue(billAmt);
-            sheet.GetRow(34).GetCell(0).SetCellValue(amountInWords);
+            sheet.GetRow(9).GetCell(1).SetCellValue(((KeyValuePair<string, string>)billTo.SelectedItem).Value);
+            sheet.GetRow(9).GetCell(3).SetCellValue(((KeyValuePair<string, string>)shipTo.SelectedItem).Value);
+            sheet.GetRow(9).GetCell(6).SetCellValue(((KeyValuePair<string, string>)agt.SelectedItem).Value);
+            sheet.GetRow(10).GetCell(1).SetCellValue(bGstin);
+            sheet.GetRow(10).GetCell(3).SetCellValue(sGstin);
+            sheet.GetRow(10).GetCell(7).SetCellValue(((KeyValuePair<string, string>)transporter.SelectedItem).Value);
+            sheet.GetRow(11).GetCell(1).SetCellValue(bAddress);
+            sheet.GetRow(11).GetCell(3).SetCellValue(sAddress);
+            sheet.GetRow(11).GetCell(7).SetCellValue(lrNo.Text);
+            sheet.GetRow(12).GetCell(7).SetCellValue(lotNo.Text);
+            sheet.GetRow(27).GetCell(7).SetCellValue(netAmt);
+            sheet.GetRow(29).GetCell(7).SetCellValue(cgstAmt);
+            sheet.GetRow(30).GetCell(7).SetCellValue(sgstAmt);
+            sheet.GetRow(31).GetCell(7).SetCellValue(igstAmt);
+            sheet.GetRow(32).GetCell(7).SetCellValue(totalTax);
+            sheet.GetRow(33).GetCell(6).SetCellValue(roundOff);
+            sheet.GetRow(34).GetCell(6).SetCellValue(billAmt);
+            sheet.GetRow(35).GetCell(0).SetCellValue(amountInWords);
 
             totalQty = 0;
             int noOfRolls = 0;
@@ -558,12 +558,12 @@ namespace Office_Manager
                     }
                 }
 
-                sheet.GetRow(13 + x).GetCell(0).SetCellValue(roll);
-                sheet.GetRow(13 + x).GetCell(1).SetCellValue(item);
-                sheet.GetRow(13 + x).GetCell(3).SetCellValue(hsn);
-                sheet.GetRow(13 + x).GetCell(4).SetCellValue(qty);
-                sheet.GetRow(13 + x).GetCell(5).SetCellValue(mtr);
-                sheet.GetRow(13 + x).GetCell(6).SetCellValue(rate);
+                sheet.GetRow(14 + x).GetCell(0).SetCellValue(roll);
+                sheet.GetRow(14 + x).GetCell(1).SetCellValue(item);
+                sheet.GetRow(14 + x).GetCell(3).SetCellValue(hsn);
+                sheet.GetRow(14 + x).GetCell(4).SetCellValue(qty);
+                sheet.GetRow(14 + x).GetCell(5).SetCellValue(mtr);
+                sheet.GetRow(14 + x).GetCell(6).SetCellValue(rate);
 
                 double amount = round(mtr * rate, 2);
                 if (checkBox1.Checked)
@@ -572,13 +572,13 @@ namespace Office_Manager
                 }
                 totalAmt += amount;
 
-                sheet.GetRow(13 + x).GetCell(7).SetCellValue(amount);
+                sheet.GetRow(14 + x).GetCell(7).SetCellValue(amount);
             }
 
             disc = round(Double.Parse(disount.Text) * totalAmt / 100, 2);
-            sheet.GetRow(24).GetCell(7).SetCellValue(disc);
+            sheet.GetRow(25).GetCell(7).SetCellValue(disc);
 
-            ICellStyle bottomBorderStyle = sheet.GetRow(24).GetCell(3).CellStyle;
+            ICellStyle bottomBorderStyle = sheet.GetRow(25).GetCell(3).CellStyle;
 
             String product = "Roll";
             if (totalQty / rollCount > 1)
@@ -588,112 +588,112 @@ namespace Office_Manager
 
             if (unit.Equals("PRS-PAIRS"))
             {
-                sheet.GetRow(12).GetCell(5).SetCellValue("PAIRS");
+                sheet.GetRow(13).GetCell(5).SetCellValue("PAIRS");
             }
 
-            sheet.GetRow(12).GetCell(0).SetCellValue(product.ToUpper() + " NO");
+            sheet.GetRow(13).GetCell(0).SetCellValue(product.ToUpper() + " NO");
 
             if (rollCount > 1)
             {
-                sheet.GetRow(13 + rollCount).GetCell(4).SetCellValue(totalQty);
-                sheet.GetRow(13 + rollCount).GetCell(5).SetCellValue(meters);
-                sheet.GetRow(13 + rollCount).GetCell(7).SetCellValue(totalAmt);
+                sheet.GetRow(14 + rollCount).GetCell(4).SetCellValue(totalQty);
+                sheet.GetRow(14 + rollCount).GetCell(5).SetCellValue(meters);
+                sheet.GetRow(14 + rollCount).GetCell(7).SetCellValue(totalAmt);
 
                 if (noOfRolls > 0)
                 {
-                    sheet.GetRow(13 + rollCount).GetCell(0).SetCellValue(noOfRolls + " " + product);
+                    sheet.GetRow(14 + rollCount).GetCell(0).SetCellValue(noOfRolls + " " + product);
                 }
 
                 if (rollCount % 2 == 0)
                 {
-                    sheet.GetRow(13 + rollCount).GetCell(4).CellStyle = sheet.GetRow(2).GetCell(0).CellStyle;
-                    sheet.GetRow(13 + rollCount).GetCell(5).CellStyle = sheet.GetRow(2).GetCell(0).CellStyle;
-                    sheet.GetRow(13 + rollCount).GetCell(7).CellStyle = sheet.GetRow(5).GetCell(0).CellStyle;
-                    sheet.GetRow(13 + rollCount).GetCell(8).CellStyle = sheet.GetRow(5).GetCell(0).CellStyle;
+                    sheet.GetRow(14 + rollCount).GetCell(4).CellStyle = sheet.GetRow(3).GetCell(0).CellStyle;
+                    sheet.GetRow(14 + rollCount).GetCell(5).CellStyle = sheet.GetRow(3).GetCell(0).CellStyle;
+                    sheet.GetRow(14 + rollCount).GetCell(7).CellStyle = sheet.GetRow(6).GetCell(0).CellStyle;
+                    sheet.GetRow(14 + rollCount).GetCell(8).CellStyle = sheet.GetRow(6).GetCell(0).CellStyle;
 
                     if (noOfRolls > 0)
                     {
-                        sheet.GetRow(13 + rollCount).GetCell(0).CellStyle = sheet.GetRow(2).GetCell(0).CellStyle;
+                        sheet.GetRow(14 + rollCount).GetCell(0).CellStyle = sheet.GetRow(3).GetCell(0).CellStyle;
                     }
                 }
                 else
                 {
-                    sheet.GetRow(13 + rollCount).GetCell(4).CellStyle = sheet.GetRow(1).GetCell(0).CellStyle;
-                    sheet.GetRow(13 + rollCount).GetCell(5).CellStyle = sheet.GetRow(1).GetCell(0).CellStyle;
-                    sheet.GetRow(13 + rollCount).GetCell(7).CellStyle = sheet.GetRow(4).GetCell(0).CellStyle;
-                    sheet.GetRow(13 + rollCount).GetCell(8).CellStyle = sheet.GetRow(4).GetCell(0).CellStyle;
+                    sheet.GetRow(14 + rollCount).GetCell(4).CellStyle = sheet.GetRow(2).GetCell(0).CellStyle;
+                    sheet.GetRow(14 + rollCount).GetCell(5).CellStyle = sheet.GetRow(2).GetCell(0).CellStyle;
+                    sheet.GetRow(14 + rollCount).GetCell(7).CellStyle = sheet.GetRow(5).GetCell(0).CellStyle;
+                    sheet.GetRow(14 + rollCount).GetCell(8).CellStyle = sheet.GetRow(5).GetCell(0).CellStyle;
 
                     if (noOfRolls > 0)
                     {
-                        sheet.GetRow(13 + rollCount).GetCell(0).CellStyle = sheet.GetRow(1).GetCell(0).CellStyle;
+                        sheet.GetRow(14 + rollCount).GetCell(0).CellStyle = sheet.GetRow(2).GetCell(0).CellStyle;
                     }
                 }
 
                 if (rollCount == 10)
                 {
-                    sheet.GetRow(24).GetCell(0).CellStyle = bottomBorderStyle;
-                    sheet.GetRow(24).GetCell(4).CellStyle = bottomBorderStyle;
+                    sheet.GetRow(25).GetCell(0).CellStyle = bottomBorderStyle;
+                    sheet.GetRow(25).GetCell(4).CellStyle = bottomBorderStyle;
                 }
             }
-            sheet.GetRow(1).CreateCell(0);
             sheet.GetRow(2).CreateCell(0);
-            sheet.GetRow(4).CreateCell(0);
+            sheet.GetRow(3).CreateCell(0);
             sheet.GetRow(5).CreateCell(0);
+            sheet.GetRow(6).CreateCell(0);
 
             con.Close();
 
             if (disount.Text == "0")
             {
-                sheet.GetRow(24).GetCell(6).SetCellValue("Nil");
+                sheet.GetRow(25).GetCell(6).SetCellValue("Nil");
             }
             else
             {
-                sheet.GetRow(24).GetCell(6).SetCellValue(Double.Parse(disount.Text) / 100);
+                sheet.GetRow(25).GetCell(6).SetCellValue(Double.Parse(disount.Text) / 100);
             }
 
             if (cgst.Text == "0")
-            {
-                sheet.GetRow(28).GetCell(6).SetCellValue("Nil");
-            }
-            else
-            {
-                sheet.GetRow(28).GetCell(6).SetCellValue(Double.Parse(cgst.Text) / 100);
-            }
-
-            if (sgst.Text == "0")
             {
                 sheet.GetRow(29).GetCell(6).SetCellValue("Nil");
             }
             else
             {
-                sheet.GetRow(29).GetCell(6).SetCellValue(Double.Parse(sgst.Text) / 100);
+                sheet.GetRow(29).GetCell(6).SetCellValue(Double.Parse(cgst.Text) / 100);
             }
 
-            if (igst.Text == "0")
+            if (sgst.Text == "0")
             {
                 sheet.GetRow(30).GetCell(6).SetCellValue("Nil");
             }
             else
             {
-                sheet.GetRow(30).GetCell(6).SetCellValue(Double.Parse(igst.Text) / 100);
+                sheet.GetRow(30).GetCell(6).SetCellValue(Double.Parse(sgst.Text) / 100);
             }
 
-            sheet.GetRow(25).GetCell(7).SetCellValue(Double.Parse(freight.Text));
-            sheet.GetRow(27).GetCell(2).SetCellValue(company);
-            sheet.GetRow(28).GetCell(2).SetCellValue(bName);
-            sheet.GetRow(29).GetCell(2).SetCellValue(bkAddress);
-            sheet.GetRow(30).GetCell(2).SetCellValue(ifsc);
-            sheet.GetRow(31).GetCell(2).SetCellValue(acNo);
-            sheet.GetRow(35).GetCell(5).SetCellValue("(For : " + company + ")");
+            if (igst.Text == "0")
+            {
+                sheet.GetRow(31).GetCell(6).SetCellValue("Nil");
+            }
+            else
+            {
+                sheet.GetRow(31).GetCell(6).SetCellValue(Double.Parse(igst.Text) / 100);
+            }
+
+            sheet.GetRow(26).GetCell(7).SetCellValue(Double.Parse(freight.Text));
+            sheet.GetRow(28).GetCell(2).SetCellValue(company);
+            sheet.GetRow(29).GetCell(2).SetCellValue(bName);
+            sheet.GetRow(30).GetCell(2).SetCellValue(bkAddress);
+            sheet.GetRow(31).GetCell(2).SetCellValue(ifsc);
+            sheet.GetRow(32).GetCell(2).SetCellValue(acNo);
+            sheet.GetRow(36).GetCell(5).SetCellValue("(For : " + company + ")");
 
             // add company logo
 
             int pictureIndex = templateWorkbook.AddPicture(logo, PictureType.PNG);
             ICreationHelper helper = templateWorkbook.GetCreationHelper();
-            IDrawing drawing = sheet.CreateDrawingPatriarch();
+            var drawing = sheet.CreateDrawingPatriarch();
             IClientAnchor anchor = helper.CreateClientAnchor();
             anchor.Col1 = 0;//0 index based column
-            anchor.Row1 = 0;//0 index based row
+            anchor.Row1 = 1;//0 index based row
             IPicture picture = drawing.CreatePicture(anchor, pictureIndex);
             picture.Resize(1.01, 4.3);
 
@@ -714,7 +714,7 @@ namespace Office_Manager
                     // pixelsPerModule (20), darkColor, lightColor, drawQuietZones (false)
                     using (Bitmap qrBitmap = qrCode.GetGraphic(1, Color.Black, Color.White, false))
                     {
-                        qrSizePixels = (int)(qrBitmap.Width * 1.4);
+                        qrSizePixels = (int)(qrBitmap.Width * 1.5);
 
                         using (Bitmap scaledBitmap = new Bitmap(qrSizePixels, qrSizePixels))
                         {
@@ -743,12 +743,12 @@ namespace Office_Manager
 
             // 1. Add picture to workbook
             int pictureIndex1 = templateWorkbook.AddPicture(qrBytes, PictureType.PNG);
-            IDrawing patriarch1 = sheet.CreateDrawingPatriarch();
+            var patriarch1 = sheet.CreateDrawingPatriarch();
 
             // 2. Create anchor pointing ONLY to C1 (Col 2, Row 0)
             IClientAnchor anchor1 = templateWorkbook.GetCreationHelper().CreateClientAnchor();
             anchor1.Col1 = 2;
-            anchor1.Row1 = 0;
+            anchor1.Row1 = 1;
 
             //anchor1.AnchorType = AnchorType.MoveDontResize;
 
@@ -758,11 +758,11 @@ namespace Office_Manager
             // 4. Tell NPOI to display it at 100% native scale 
 
             // 24% X 42% (0.48" X 0.84") - 1.99" X 1.99"
-            double xFactor = 1.0 / 0.42;
-            double yFactor = 1.0 / 0.24;
+            double xFactor = 2.175;
+            double yFactor = 4.0825;
 
-            // 114,  95   , 106 , 90  , 106  , 94
-            // 2.38, 2.088, 1.97, 2.19, 2.067, 2.199
+            // 98   , 91
+            // 2.182, 2.165
             picture1.Resize(xFactor, yFactor);
 
             // recalculate formula
@@ -1079,7 +1079,7 @@ namespace Office_Manager
 
             int pictureIndex = templateWorkbook.AddPicture(logo, PictureType.PNG);
             ICreationHelper helper = templateWorkbook.GetCreationHelper();
-            IDrawing drawing = sheet.CreateDrawingPatriarch();
+            var drawing = sheet.CreateDrawingPatriarch();
             IClientAnchor anchor = helper.CreateClientAnchor();
             anchor.Col1 = 0;//0 index based column
             anchor.Row1 = 0;//0 index based row
@@ -1103,25 +1103,32 @@ namespace Office_Manager
 
         public void showExcel(string m_ExcelFileName)
         {
-            Microsoft.Office.Interop.Excel.Application excelApp = new Microsoft.Office.Interop.Excel.Application();
-            excelApp.Visible = true;
-            Microsoft.Office.Interop.Excel.Workbook wb = excelApp.Workbooks.Open(m_ExcelFileName,
-                            Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing,
-                            Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing,
-                            Type.Missing, Type.Missing, Type.Missing, Type.Missing);
-            Microsoft.Office.Interop.Excel.Worksheet ws = (Microsoft.Office.Interop.Excel.Worksheet)wb.Worksheets[1];
-            bool userDidntCancel = excelApp.Dialogs[Microsoft.Office.Interop.Excel.XlBuiltInDialog.xlDialogPrintPreview].Show(
-                                        Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing,
-                                        Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing,
-                                        Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing,
-                                        Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing,
-                                        Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing,
-                                        Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
+            try
+            {
+                Microsoft.Office.Interop.Excel.Application excelApp = new Microsoft.Office.Interop.Excel.Application();
+                excelApp.Visible = true;
+                Microsoft.Office.Interop.Excel.Workbook wb = excelApp.Workbooks.Open(m_ExcelFileName,
+                                Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing,
+                                Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing,
+                                Type.Missing, Type.Missing, Type.Missing, Type.Missing);
+                Microsoft.Office.Interop.Excel.Worksheet ws = (Microsoft.Office.Interop.Excel.Worksheet)wb.Worksheets[1];
+                bool userDidntCancel = excelApp.Dialogs[Microsoft.Office.Interop.Excel.XlBuiltInDialog.xlDialogPrintPreview].Show(
+                                            Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing,
+                                            Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing,
+                                            Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing,
+                                            Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing,
+                                            Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing,
+                                            Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
 
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            wb.Close(false, Type.Missing, Type.Missing);
-            excelApp.Quit();
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                wb.Close(false, Type.Missing, Type.Missing);
+                excelApp.Quit();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error showing Excel preview : " + ex.Message);
+            }
         }
 
         private void button6_Click(object sender, EventArgs e)
@@ -2131,6 +2138,15 @@ namespace Office_Manager
                 }
             }
             isLoading = false;
+
+            if(signedInvoice == null || signedInvoice.Equals(""))
+            {
+                qrBtn.BackColor = Color.IndianRed;
+            } 
+            else
+            {
+                qrBtn.BackColor = Color.ForestGreen;
+            }
         }
 
         private void setBillNo(string billDt)
@@ -3261,6 +3277,18 @@ namespace Office_Manager
         private void width_TextChanged(object sender, EventArgs e)
         {
 
+        }
+
+        private void qrBtn_Click(object sender, EventArgs e)
+        {
+            if(qrBtn.BackColor == Color.ForestGreen)
+            {
+                new QR(signedInvoice).Show();
+            }
+            else
+            {
+                MessageBox.Show("No QR available");
+            }
         }
     }
 }

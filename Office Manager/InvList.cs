@@ -22,10 +22,10 @@ using System.Drawing.Printing;
 using Microsoft.Office.Interop.Excel;
 using Point = System.Drawing.Point;
 using Font = System.Drawing.Font;
-using ICSharpCode.SharpZipLib.Zip;
 using System.Text.Json;
 using QRCoder;
 using System.IO.Compression;
+using SeleniumExtras.WaitHelpers;
 
 namespace Office_Manager
 {
@@ -1520,7 +1520,7 @@ namespace Office_Manager
 
         private void button11_Click_1(object sender, EventArgs e)
         {
-            PrintDocument pd = new PrintDocument();
+            System.Drawing.Printing.PrintDocument pd = new System.Drawing.Printing.PrintDocument();
             pd.PrintPage += new PrintPageEventHandler(this.printDocument1_PrintPage);
 
             PrintDialog printdlg = new PrintDialog();

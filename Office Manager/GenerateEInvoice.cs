@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using System.Text.Json;
-using System.Collections.Generic;
 using Microsoft.Office.Interop.Excel;
 using NPOI.SS.Formula.Functions;
 using OpenQA.Selenium.Remote;
