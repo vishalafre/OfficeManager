@@ -49,7 +49,7 @@ namespace Office_Manager
 
             using (SqlConnection con = new SqlConnection(connectionStr))
             {
-                string query = "SELECT DISTINCT C1.CID BILL_TO, S1.CID SHIP_TO, B.BILL_ID, B.BILL_DT, CMP.GSTIN SELLER_GSTIN, CMP.CITY SELLER_CITY, CMP.PIN SELLER_PIN, C1.GSTIN CUST_GSTIN, C1.CNAME CUST_NAME, C1.ADDRESS CUST_ADDR1, C1.CITY CUST_CITY, C1.PINCODE CUST_PIN, S1.GSTIN SHIP_GSTIN, S1.CNAME SHIP_NAME, S1.ADDRESS SHIP_ADDR1, S1.CITY SHIP_CITY, S1.PINCODE SHIP_PIN, (SELECT SUM(BII.MTR*BII.RATE) - BB.NET_AMT FROM BILL BB, BILL_ITEM BII WHERE BB.BILL_ID = BII.BILL_ID AND B.BILL_ID = BB.BILL_ID GROUP BY BB.NET_AMT) DISCOUNT, B.DISCOUNT DISC_PER, B.NET_AMT, B.ISGT IGST_RATE, B.CGST_AMT, B.SGST_AMT, B.IGST_AMT, B.CGST CGST_RATE, B.SGST SGST_RATE, (B.BILL_AMT - (B.NET_AMT + B.CGST + B.SGST_AMT + B.IGST_AMT)) ROUND_OFF, B.BILL_AMT, T1.TRANS_ID TRANS_GSTIN, T1.T_NAME TRANS_NAME, S1.DISTANCE, I.HSN ITEM_HSN, LEFT(I.UNIT, CHARINDEX('-', I.UNIT) - 1) AS ITEM_UNIT, BI.ROLL_NO, BI.MTR ITEM_QTY, BI.RATE ITEM_RATE, BI.AMOUNT ITEM_AMOUNT FROM BILL B, CUSTOMER C1, CUSTOMER S1, COMPANY CMP, BILL_ITEM BI, ITEM I, TRANSPORT T1 WHERE I.ITEM_ID = BI.ITEM AND C1.CID = B.BILL_TO AND CMP.NAME = B.FIRM AND B.SHIP_TO = S1.CID AND B.TRANSPORTER = T1.TID AND B.BILL_ID = BI.BILL_ID AND B.FIRM = @FIRM AND B.BILL_ID IN " + input;
+                string query = "SELECT DISTINCT C1.CID BILL_TO, S1.CID SHIP_TO, B.BILL_ID, B.BILL_DT, B.FREIGHT, CMP.GSTIN SELLER_GSTIN, CMP.CITY SELLER_CITY, CMP.PIN SELLER_PIN, C1.GSTIN CUST_GSTIN, C1.CNAME CUST_NAME, C1.ADDRESS CUST_ADDR1, C1.CITY CUST_CITY, C1.PINCODE CUST_PIN, S1.GSTIN SHIP_GSTIN, S1.CNAME SHIP_NAME, S1.ADDRESS SHIP_ADDR1, S1.CITY SHIP_CITY, S1.PINCODE SHIP_PIN, (SELECT SUM(BII.MTR*BII.RATE) - BB.NET_AMT FROM BILL BB, BILL_ITEM BII WHERE BB.BILL_ID = BII.BILL_ID AND B.BILL_ID = BB.BILL_ID GROUP BY BB.NET_AMT) DISCOUNT, B.DISCOUNT DISC_PER, B.NET_AMT, B.ISGT IGST_RATE, B.CGST_AMT, B.SGST_AMT, B.IGST_AMT, B.CGST CGST_RATE, B.SGST SGST_RATE, (B.BILL_AMT - (B.NET_AMT + B.CGST + B.SGST_AMT + B.IGST_AMT)) ROUND_OFF, B.BILL_AMT, T1.TRANS_ID TRANS_GSTIN, T1.T_NAME TRANS_NAME, S1.DISTANCE, I.HSN ITEM_HSN, LEFT(I.UNIT, CHARINDEX('-', I.UNIT) - 1) AS ITEM_UNIT, BI.ROLL_NO, BI.MTR ITEM_QTY, BI.RATE ITEM_RATE, BI.AMOUNT ITEM_AMOUNT FROM BILL B, CUSTOMER C1, CUSTOMER S1, COMPANY CMP, BILL_ITEM BI, ITEM I, TRANSPORT T1 WHERE I.ITEM_ID = BI.ITEM AND C1.CID = B.BILL_TO AND CMP.NAME = B.FIRM AND B.SHIP_TO = S1.CID AND B.TRANSPORTER = T1.TID AND B.BILL_ID = BI.BILL_ID AND B.FIRM = @FIRM AND B.BILL_ID IN " + input;
                 using (SqlCommand oCmd = new SqlCommand(query, con))
                 {
                     oCmd.Parameters.AddWithValue("@FIRM", firm);
@@ -96,6 +96,7 @@ namespace Office_Manager
 
                     string billTo = firstRow["BILL_TO"].ToString();
                     string shipTo = firstRow["SHIP_TO"].ToString();
+                    decimal freight = Convert.ToDecimal(firstRow["FREIGHT"]);
 
                     decimal netAmount = Convert.ToDecimal(firstRow["NET_AMT"]);
                     decimal discAmount = Convert.ToDecimal(firstRow["DISCOUNT"]);
@@ -232,7 +233,7 @@ namespace Office_Manager
                         itemList.Add(newItem);
                     } // End of Items loop
 
-                    decimal billAmt = netAmount + headerCgstVal + headerSgstVal + headerIgstVal;
+                    decimal billAmt = netAmount + headerCgstVal + headerSgstVal + headerIgstVal + freight;
                     decimal roundOff = Math.Round(billAmt) - billAmt;
                     // Build the main Invoice Object
                     var newBill = new
@@ -288,7 +289,7 @@ namespace Office_Manager
                             CesVal = 0,
                             StCesVal = 0,
                             Discount = 0,
-                            OthChrg = 0,
+                            OthChrg = freight,
                             RndOffAmt = roundOff,
                             TotInvVal = Math.Round(billAmt),
                             TotInvValFc = 0
