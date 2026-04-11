@@ -49,7 +49,7 @@ namespace Office_Manager
 
             using (SqlConnection con = new SqlConnection(connectionStr))
             {
-                string query = "SELECT DISTINCT C1.CID BILL_TO, S1.CID SHIP_TO, B.BILL_ID, B.BILL_DT, CMP.GSTIN SELLER_GSTIN, CMP.CITY SELLER_CITY, CMP.PIN SELLER_PIN, C1.GSTIN CUST_GSTIN, C1.CNAME CUST_NAME, C1.ADDRESS CUST_ADDR1, C1.CITY CUST_CITY, C1.PINCODE CUST_PIN, S1.GSTIN SHIP_GSTIN, S1.CNAME SHIP_NAME, S1.ADDRESS SHIP_ADDR1, S1.CITY SHIP_CITY, S1.PINCODE SHIP_PIN, (SELECT SUM(BII.MTR*BII.RATE) - BB.NET_AMT FROM BILL BB, BILL_ITEM BII WHERE BB.BILL_ID = BII.BILL_ID AND B.BILL_ID = BB.BILL_ID GROUP BY BB.NET_AMT) DISCOUNT, B.DISCOUNT DISC_PER, B.NET_AMT, B.ISGT IGST_RATE, B.CGST_AMT, B.SGST_AMT, B.IGST_AMT, B.CGST CGST_RATE, B.SGST SGST_RATE, (B.BILL_AMT - (B.NET_AMT + B.CGST + B.SGST_AMT + B.IGST_AMT)) ROUND_OFF, B.BILL_AMT, T1.TRANS_ID TRANS_GSTIN, T1.T_NAME TRANS_NAME, S1.DISTANCE, I.HSN ITEM_HSN, LEFT(I.UNIT, CHARINDEX('-', I.UNIT) - 1) AS ITEM_UNIT, BI.ROLL_NO, BI.MTR ITEM_QTY, BI.RATE ITEM_RATE, BI.AMOUNT ITEM_AMOUNT FROM BILL B, CUSTOMER C1, CUSTOMER S1, COMPANY CMP, BILL_ITEM BI, ITEM I, TRANSPORT T1 WHERE I.ITEM_ID = BI.ITEM AND C1.CID = B.BILL_TO AND CMP.NAME = B.FIRM AND B.SHIP_TO = S1.CID AND B.TRANSPORTER = T1.TID AND B.BILL_ID = BI.BILL_ID AND B.FIRM = @FIRM AND B.BILL_ID IN " + input;
+                string query = "SELECT DISTINCT C1.CID BILL_TO, S1.CID SHIP_TO, B.BILL_ID, B.BILL_DT, B.FREIGHT, CMP.GSTIN SELLER_GSTIN, CMP.CITY SELLER_CITY, CMP.PIN SELLER_PIN, C1.GSTIN CUST_GSTIN, C1.CNAME CUST_NAME, C1.ADDRESS CUST_ADDR1, C1.CITY CUST_CITY, C1.PINCODE CUST_PIN, S1.GSTIN SHIP_GSTIN, S1.CNAME SHIP_NAME, S1.ADDRESS SHIP_ADDR1, S1.CITY SHIP_CITY, S1.PINCODE SHIP_PIN, (SELECT SUM(BII.MTR*BII.RATE) FROM BILL_ITEM BII WHERE BII.BILL_ID = BI.BILL_ID) TOT_NET_AMT, (SELECT SUM(BII.MTR*BII.RATE) - BB.NET_AMT FROM BILL BB, BILL_ITEM BII WHERE BB.BILL_ID = BII.BILL_ID AND B.BILL_ID = BB.BILL_ID GROUP BY BB.NET_AMT) DISCOUNT, B.DISCOUNT DISC_PER, B.NET_AMT, B.ISGT IGST_RATE, B.CGST_AMT, B.SGST_AMT, B.IGST_AMT, B.CGST CGST_RATE, B.SGST SGST_RATE, (B.BILL_AMT - (B.NET_AMT + B.CGST + B.SGST_AMT + B.IGST_AMT)) ROUND_OFF, B.BILL_AMT, T1.TRANS_ID TRANS_GSTIN, T1.T_NAME TRANS_NAME, S1.DISTANCE, I.HSN ITEM_HSN, LEFT(I.UNIT, CHARINDEX('-', I.UNIT) - 1) AS ITEM_UNIT, BI.ROLL_NO, BI.MTR ITEM_QTY, BI.RATE ITEM_RATE, BI.AMOUNT ITEM_AMOUNT FROM BILL B, CUSTOMER C1, CUSTOMER S1, COMPANY CMP, BILL_ITEM BI, ITEM I, TRANSPORT T1 WHERE I.ITEM_ID = BI.ITEM AND C1.CID = B.BILL_TO AND CMP.NAME = B.FIRM AND B.SHIP_TO = S1.CID AND B.TRANSPORTER = T1.TID AND B.BILL_ID = BI.BILL_ID AND B.FIRM = @FIRM AND B.BILL_ID IN " + input;
                 using (SqlCommand oCmd = new SqlCommand(query, con))
                 {
                     oCmd.Parameters.AddWithValue("@FIRM", firm);
@@ -98,9 +98,24 @@ namespace Office_Manager
                     string shipTo = firstRow["SHIP_TO"].ToString();
 
                     decimal netAmount = Convert.ToDecimal(firstRow["NET_AMT"]);
-                    decimal discAmount = Convert.ToDecimal(firstRow["DISCOUNT"]);
+                    decimal totNetAmount = Convert.ToDecimal(firstRow["TOT_NET_AMT"]);
+                    decimal freight = Convert.ToDecimal(firstRow["FREIGHT"]);
+
                     decimal discPer = Convert.ToDecimal(firstRow["DISC_PER"]);
+                    decimal discAmount = Math.Round(totNetAmount * discPer / 100, 2);
+                    netAmount = totNetAmount - discAmount + freight;
+
                     mDiscAmount = discAmount;
+
+                    double freightGst = 0;
+                    double freightCgst = 0;
+                    double freightSgst = 0;
+                    double freightIgst = 0;
+
+                    if (freight > 0)
+                    {
+                        freightGst = Math.Round((double)freight * 0.05, 2);
+                    }
 
                     DateTime parsedDate;
                     string billDt = DateTime.TryParse(firstRow["BILL_DT"].ToString(), out parsedDate)
@@ -113,11 +128,22 @@ namespace Office_Manager
                     decimal headerCgstVal = firstRow["CGST_AMT"] == DBNull.Value ? 0m : Convert.ToDecimal(firstRow["CGST_AMT"]);
                     decimal headerSgstVal = firstRow["SGST_AMT"] == DBNull.Value ? 0m : Convert.ToDecimal(firstRow["SGST_AMT"]);
 
+                    if (headerIgstVal > 0)
+                    {
+                        freightIgst = freightGst;
+                    }
+                    else
+                    {
+                        freightCgst = freightGst / 2;
+                        freightSgst = freightGst / 2;
+                    }
+
                     var itemList = new List<object>();
 
                     // Track running totals of GST applied to items
                     decimal sumPrevIgst = 0, sumPrevCgst = 0, sumPrevSgst = 0, sumPrevDiscount = 0;
 
+                    int maxSl = 0;
                     // Loop through the items of this specific invoice
                     for (int i = 0; i < billRows.Count; i++)
                     {
@@ -136,6 +162,7 @@ namespace Office_Manager
                         {
                             slNo = (i + 1).ToString(); // Fallback to 1, 2, 3...
                         }
+                        maxSl = Int32.Parse(slNo);
 
                         // Extract math variables safely
                         decimal assAmt = row["ITEM_AMOUNT"] == DBNull.Value ? 0m : Convert.ToDecimal(row["ITEM_AMOUNT"]);
@@ -169,9 +196,9 @@ namespace Office_Manager
                         if (isLastItem)
                         {
                             // Force the last item to absorb any penny differences
-                            if (headerIgstVal > 0 || sumPrevIgst > 0) itemIgstAmt = headerIgstVal - sumPrevIgst;
-                            if (headerCgstVal > 0 || sumPrevCgst > 0) itemCgstAmt = headerCgstVal - sumPrevCgst;
-                            if (headerSgstVal > 0 || sumPrevSgst > 0) itemSgstAmt = headerSgstVal - sumPrevSgst;
+                            if (headerIgstVal > 0 || sumPrevIgst > 0) itemIgstAmt = headerIgstVal - (decimal)freightIgst - sumPrevIgst;
+                            if (headerCgstVal > 0 || sumPrevCgst > 0) itemCgstAmt = headerCgstVal - (decimal)freightCgst - sumPrevCgst;
+                            if (headerSgstVal > 0 || sumPrevSgst > 0) itemSgstAmt = headerSgstVal - (decimal)freightSgst - sumPrevSgst;
 
                             /*totalAmt = assAmt;
                             if (mDiscAmount > 0)
@@ -232,6 +259,45 @@ namespace Office_Manager
                         itemList.Add(newItem);
                     } // End of Items loop
 
+                    if(freight > 0)
+                    {
+                        var newItem = new
+                        {
+                            SlNo = (maxSl + 1) + "",
+                            PrdDesc = (string)null,
+                            IsServc = "Y",
+                            HsnCd = "9965",
+                            Barcde = (string)null,
+                            Qty = 1m,
+                            FreeQty = 0,
+                            Unit = "OTH",
+                            UnitPrice = freight,
+                            TotAmt = freight,
+                            Discount = 0,
+                            PreTaxVal = 0,
+                            AssAmt = freight,
+                            GstRt = 5, // (Assuming fixed as per original code, update if DB holds total item GST rate)
+                            IgstAmt = freightGst,
+                            CgstAmt = freightCgst,
+                            SgstAmt = freightSgst,
+                            CesRt = 0,
+                            CesAmt = 0,
+                            CesNonAdvlAmt = 0,
+                            StateCesRt = 0,
+                            StateCesAmt = 0,
+                            StateCesNonAdvlAmt = 0,
+                            OthChrg = 0,
+                            TotItemVal = ((double)freight + freightGst),
+                            OrdLineRef = (string)null,
+                            OrgCntry = (string)null,
+                            PrdSlNo = (string)null,
+                            BchDtls = (object)null,
+                            AttribDtls = new[] { new { Nm = (string)null, Val = (string)null } }
+                        };
+
+                        itemList.Add(newItem);
+                    }
+
                     decimal billAmt = netAmount + headerCgstVal + headerSgstVal + headerIgstVal;
                     decimal roundOff = Math.Round(billAmt) - billAmt;
                     // Build the main Invoice Object
@@ -281,7 +347,7 @@ namespace Office_Manager
                         },
                         ValDtls = new
                         {
-                            AssVal = netAmount,
+                            AssVal = Math.Round(netAmount, 2),
                             IgstVal = headerIgstVal,
                             CgstVal = headerCgstVal,
                             SgstVal = headerSgstVal,
@@ -289,7 +355,7 @@ namespace Office_Manager
                             StCesVal = 0,
                             Discount = 0,
                             OthChrg = 0,
-                            RndOffAmt = roundOff,
+                            RndOffAmt = Math.Round(roundOff, 2),
                             TotInvVal = Math.Round(billAmt),
                             TotInvValFc = 0
                         },

@@ -26,6 +26,7 @@ using System.Text.Json;
 using QRCoder;
 using System.IO.Compression;
 using SeleniumExtras.WaitHelpers;
+using ZXing;
 
 namespace Office_Manager
 {
@@ -1785,6 +1786,131 @@ namespace Office_Manager
             con.Close();
         }
 
+        private void printEwb(Dictionary<string, string> eWayBillIds, IWebDriver driver)
+        {
+            try
+            {
+                con.Open();
+            }
+            catch { }
+            driver.Navigate().GoToUrl("https://ewaybillgst.gov.in/login.aspx");
+            driver.Manage().Window.Maximize();
+
+            String query = "select EWB_USERNAME, EWB_PASSWORD from company where name = @FIRM";
+            SqlCommand oCmd = new SqlCommand(query, con);
+            oCmd.Parameters.AddWithValue("@FIRM", company);
+
+            string username = "";
+            string password = "";
+
+            using (SqlDataReader oReader = oCmd.ExecuteReader())
+            {
+                if (oReader.Read())
+                {
+                    username = oReader["EWB_USERNAME"].ToString();
+                    password = oReader["EWB_PASSWORD"].ToString();
+                }
+            }
+
+            fillCredentials(driver, username, password);
+
+            try
+            {
+                driver.SwitchTo().Alert().Accept();
+            }
+            catch
+            {
+
+            }
+            // Dismiss alert
+
+            WebDriverWait waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
+
+            // E-Waybill click
+
+            try
+            {
+                waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")));
+            }
+            catch
+            {
+                driver.SwitchTo().Alert().Accept();
+                waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")));
+            }
+
+
+            try
+            {
+                driver.FindElement(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")).Click();
+            }
+            catch
+            {
+                Thread.Sleep(500);
+                driver.FindElement(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")).Click();
+
+                waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
+                waitForElement.Until(ExpectedConditions.InvisibilityOfElementLocated(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")));
+
+                driver.FindElement(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")).Click();
+            }
+
+            foreach (string billId in eWayBillIds.Keys)
+            {
+                // E-Waybill click
+
+                waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
+                waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")));
+
+                try
+                {
+                    driver.FindElement(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")).Click();
+                }
+                catch
+                {
+                    Thread.Sleep(500);
+                    driver.FindElement(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")).Click();
+
+                    waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
+                    waitForElement.Until(ExpectedConditions.InvisibilityOfElementLocated(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")));
+
+                    driver.FindElement(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")).Click();
+                }
+                // Print EWB click
+
+                waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
+                waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R15\"]/a")));
+
+                driver.FindElement(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R15\"]/a")).Click();
+
+                // Enter EWB no and click GO
+
+                waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
+                waitForElement.Until(ExpectedConditions.ElementIsVisible(By.Id("ctl00_ContentPlaceHolder1_txt_ebillno")));
+
+                driver.FindElement(By.Id("ctl00_ContentPlaceHolder1_txt_ebillno")).SendKeys(eWayBillIds[billId]);
+                driver.FindElement(By.Id("ctl00_ContentPlaceHolder1_btn_go")).Click();
+
+                // Click Exit button after print
+                IJavaScriptExecutor js = (IJavaScriptExecutor)driver;
+                js.ExecuteScript("window.onafterprint = function () {document.getElementById('ctl00_ContentPlaceHolder1_printtr').getElementsByTagName('a')[1].click();};", null);
+
+                // Click Print
+                waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
+                waitForElement.Until(ExpectedConditions.ElementToBeClickable(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_printtr\"]/td/a[1]")));
+
+                js.ExecuteScript("document.getElementById('ctl00_ContentPlaceHolder1_printtr').getElementsByTagName('a')[0].click();", null);
+            }
+
+            waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
+            waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")));
+
+            try
+            {
+                con.Close();
+            }
+            catch { }
+        }
+
         private void button15_Click(object sender, EventArgs e)
         {
             eWayBillIds = new Dictionary<string, string>();
@@ -1832,22 +1958,6 @@ namespace Office_Manager
                 }
                 else
                 {
-                    String query = "select EWB_USERNAME, EWB_PASSWORD from company where name = @FIRM";
-                    SqlCommand oCmd = new SqlCommand(query, con);
-                    oCmd.Parameters.AddWithValue("@FIRM", company);
-
-                    string username = "";
-                    string password = "";
-
-                    using (SqlDataReader oReader = oCmd.ExecuteReader())
-                    {
-                        if (oReader.Read())
-                        {
-                            username = oReader["EWB_USERNAME"].ToString();
-                            password = oReader["EWB_PASSWORD"].ToString();
-                        }
-                    }
-
                     ChromeDriverService chromeDriverService = ChromeDriverService.CreateDefaultService();
                     chromeDriverService.HideCommandPromptWindow = true;
 
@@ -1856,128 +1966,9 @@ namespace Office_Manager
 
                     driver = new ChromeDriver(chromeDriverService, options, TimeSpan.FromSeconds(6000));
 
-                    driver.Navigate().GoToUrl("https://ewaybillgst.gov.in/login.aspx");
-                    driver.Manage().Window.Maximize();
-
                     // fill username & password
-
-                    fillCredentials(driver, username, password);
-
-
-
-
-
-
-
-                    try
-                    {
-                        driver.SwitchTo().Alert().Accept();
-                    }
-                    catch
-                    {
-
-                    }
-                    // Dismiss alert
-
-                    WebDriverWait waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
-
-
-                    // E-Waybill click
-
-                    waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
-
-                    try
-                    {
-                        waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")));
-                    }
-                    catch
-                    {
-                        driver.SwitchTo().Alert().Accept();
-                        waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")));
-                    }
-
-
-                    try
-                    {
-                        driver.FindElement(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")).Click();
-                    }
-                    catch
-                    {
-                        Thread.Sleep(500);
-                        driver.FindElement(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")).Click();
-
-                        waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
-                        waitForElement.Until(ExpectedConditions.InvisibilityOfElementLocated(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")));
-
-                        driver.FindElement(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")).Click();
-                    }
-
-
-
-
-
-
-
-
-
-
-
-                    // Dismiss alert
-
-
-                    //waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")));
-                    //driver.FindElement(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")).Click();
-
-                    foreach (string billId in eWayBillIds.Keys)
-                    {
-                        // E-Waybill click
-
-                        waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
-                        waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")));
-
-                        try
-                        {
-                            driver.FindElement(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")).Click();
-                        }
-                        catch
-                        {
-                            Thread.Sleep(500);
-                            driver.FindElement(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")).Click();
-
-                            waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
-                            waitForElement.Until(ExpectedConditions.InvisibilityOfElementLocated(By.XPath("//*[@id=\"Div2FA\"]/div/div/div[3]/button")));
-
-                            driver.FindElement(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")).Click();
-                        }
-                        // Print EWB click
-
-                        waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
-                        waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R15\"]/a")));
-
-                        driver.FindElement(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R15\"]/a")).Click();
-
-                        // Enter EWB no and click GO
-
-                        waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
-                        waitForElement.Until(ExpectedConditions.ElementIsVisible(By.Id("ctl00_ContentPlaceHolder1_txt_ebillno")));
-
-                        driver.FindElement(By.Id("ctl00_ContentPlaceHolder1_txt_ebillno")).SendKeys(eWayBillIds[billId]);
-                        driver.FindElement(By.Id("ctl00_ContentPlaceHolder1_btn_go")).Click();
-
-                        // Click Exit button after print
-                        IJavaScriptExecutor js = (IJavaScriptExecutor)driver;
-                        js.ExecuteScript("window.onafterprint = function () {document.getElementById('ctl00_ContentPlaceHolder1_printtr').getElementsByTagName('a')[1].click();};", null);
-
-                        // Click Print
-                        waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
-                        waitForElement.Until(ExpectedConditions.ElementToBeClickable(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_printtr\"]/td/a[1]")));
-
-                        js.ExecuteScript("document.getElementById('ctl00_ContentPlaceHolder1_printtr').getElementsByTagName('a')[0].click();", null);
-                    }
-
-                    waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
-                    waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"ctl00_ContentPlaceHolder1_R10\"]/a")));
-
+                    printEwb(eWayBillIds, driver);
+                    
                     Thread.Sleep(4000);
                     driver.Close();
                     driver.Quit();
@@ -2054,6 +2045,15 @@ namespace Office_Manager
                 driver.FindElement(By.Id("txt_password")).SendKeys(password);
                 driver.FindElement(By.Id("CaptchaCode")).Click();
 
+                try
+                {
+                    waitForElement.Until(ExpectedConditions.ElementIsVisible(By.Id("txtOtp")));
+                }
+                catch
+                {
+                    driver.SwitchTo().Alert().Accept();
+                }
+
                 // Click eInvoice -> Generate Bulk
 
                 waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"accordion\"]/li[1]/a")));
@@ -2073,7 +2073,8 @@ namespace Office_Manager
 
                 // fetch data from table
 
-                var rows = driver.FindElements(By.XPath("//table[contains(@class, 'table-bordered')]/tbody/tr[position() > 1]"));
+                waitForElement.Until(ExpectedConditions.ElementExists(By.XPath("(//table)[2]")));
+                var rows = driver.FindElements(By.XPath("(//table)[2]//tr[position() > 1]"));
 
                 foreach (var row in rows)
                 {
@@ -2102,6 +2103,8 @@ namespace Office_Manager
                 }
 
                 // Click the download button
+                waitForElement.Until(ExpectedConditions.ElementToBeClickable(By.XPath("//*[@id=\"maindiv\"]/div/form/div[6]/div/div/div[2]/div[1]/a[1]")));
+
                 driver.FindElement(By.XPath("//*[@id=\"maindiv\"]/div/form/div[6]/div/div/div[2]/div[1]/a[1]")).Click();
 
                 // Wait for the file to download (with a simple 30-second timeout)
@@ -2128,7 +2131,7 @@ namespace Office_Manager
                 }
                 Directory.CreateDirectory(extractionPath);
                 // Replace the ZipFile.ExtractToDirectory line with this:
-                using (ZipArchive archive = System.IO.Compression.ZipFile.OpenRead(zipFilePath))
+                using (ZipArchive archive = ZipFile.OpenRead(zipFilePath))
                 {
                     foreach (ZipArchiveEntry entry in archive.Entries)
                     {
@@ -2145,7 +2148,7 @@ namespace Office_Manager
                 // 4, 5 & 6. Read JSON, Generate QR, and Update Database
                 using (SqlConnection conn = con)
                 {
-                    string updateQuery = "UPDATE bill SET EWAYBILL_NO = @EWAYBILL_NO, IRN = @IRN, qr = @QR WHERE bill_id = @bill_id AND firm = @firm";
+                    string updateQuery = "UPDATE BILL SET EWAYBILL_NO = @EWAYBILL_NO, IRN = @IRN, SIGNED_INVOICE = @SIGNED_INVOICE WHERE bill_id = @bill_id AND firm = @firm";
 
                     foreach (var invoice in eWayBillIds.Keys)
                     {
@@ -2158,20 +2161,8 @@ namespace Office_Manager
                             string jsonContent = File.ReadAllText(jsonFilePath);
                             var jsonDoc = JsonDocument.Parse(jsonContent);
 
-                            // Assuming "SignedInvoice" is a top-level property
-                            string signedInvoiceText = jsonDoc.RootElement.GetProperty("SignedInvoice").GetString();
-
-                            // 5. Generate QR Code as byte[]
-                            byte[] qrCodeBytes = null;
-                            using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
-                            {
-                                QRCodeData qrCodeData = qrGenerator.CreateQrCode(signedInvoiceText, QRCodeGenerator.ECCLevel.Q);
-                                using (BitmapByteQRCode qrCode = new BitmapByteQRCode(qrCodeData))
-                                {
-                                    // 20 is the pixel size per block in the QR code
-                                    qrCodeBytes = qrCode.GetGraphic(20);
-                                }
-                            }
+                            // Assuming SignedQRCode is a top-level property
+                            string signedInvoiceText = jsonDoc.RootElement.GetProperty("SignedQRCode").GetString();
 
                             // 6. Execute Database Update
                             using (SqlCommand cmd = new SqlCommand(updateQuery, conn))
@@ -2179,11 +2170,7 @@ namespace Office_Manager
                                 cmd.Parameters.AddWithValue("@EWAYBILL_NO", eWayBillIds[invoice]);
                                 cmd.Parameters.AddWithValue("@IRN", irnNos[invoice]);
 
-                                // Handle SQL nulls safely if QR generation failed
-                                if (qrCodeBytes != null)
-                                    cmd.Parameters.AddWithValue("@QR", qrCodeBytes);
-                                else
-                                    cmd.Parameters.AddWithValue("@QR", DBNull.Value);
+                                cmd.Parameters.AddWithValue("@SIGNED_INVOICE", signedInvoiceText);
 
                                 cmd.Parameters.AddWithValue("@bill_id", invoice);
                                 cmd.Parameters.AddWithValue("@firm", company);
@@ -2196,7 +2183,8 @@ namespace Office_Manager
 
                 // Optional Cleanup: Remove the zip and extracted folder after processing
                 File.Delete(zipFilePath);
-                Directory.Delete(extractionPath, true);
+                //Directory.Delete(extractionPath, true);
+                printEwb(eWayBillIds, driver);
 
                 con.Close();
                 driver.Close();

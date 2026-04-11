@@ -28,21 +28,11 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(QR));
-            this.itemLbl = new System.Windows.Forms.Label();
             this.pictureBox17 = new System.Windows.Forms.PictureBox();
+            this.signedInvoiceTb = new System.Windows.Forms.TextBox();
+            this.updateBtn = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox17)).BeginInit();
             this.SuspendLayout();
-            // 
-            // itemLbl
-            // 
-            this.itemLbl.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.itemLbl.Location = new System.Drawing.Point(13, 380);
-            this.itemLbl.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
-            this.itemLbl.Name = "itemLbl";
-            this.itemLbl.Size = new System.Drawing.Size(1046, 259);
-            this.itemLbl.TabIndex = 61;
-            this.itemLbl.Text = resources.GetString("itemLbl.Text");
             // 
             // pictureBox17
             // 
@@ -55,24 +45,48 @@
             this.pictureBox17.TabIndex = 60;
             this.pictureBox17.TabStop = false;
             // 
+            // signedInvoiceTb
+            // 
+            this.signedInvoiceTb.Location = new System.Drawing.Point(13, 377);
+            this.signedInvoiceTb.Margin = new System.Windows.Forms.Padding(4);
+            this.signedInvoiceTb.Multiline = true;
+            this.signedInvoiceTb.Name = "signedInvoiceTb";
+            this.signedInvoiceTb.Size = new System.Drawing.Size(1046, 159);
+            this.signedInvoiceTb.TabIndex = 61;
+            this.signedInvoiceTb.TextChanged += new System.EventHandler(this.signedInvoiceTb_TextChanged);
+            // 
+            // updateBtn
+            // 
+            this.updateBtn.Location = new System.Drawing.Point(463, 556);
+            this.updateBtn.Margin = new System.Windows.Forms.Padding(4);
+            this.updateBtn.Name = "updateBtn";
+            this.updateBtn.Size = new System.Drawing.Size(100, 28);
+            this.updateBtn.TabIndex = 62;
+            this.updateBtn.Text = "Update";
+            this.updateBtn.UseVisualStyleBackColor = true;
+            this.updateBtn.Click += new System.EventHandler(this.updateBtn_Click);
+            // 
             // QR
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1072, 681);
-            this.Controls.Add(this.itemLbl);
+            this.ClientSize = new System.Drawing.Size(1072, 611);
+            this.Controls.Add(this.updateBtn);
+            this.Controls.Add(this.signedInvoiceTb);
             this.Controls.Add(this.pictureBox17);
             this.Name = "QR";
             this.Text = "QR";
             this.Load += new System.EventHandler(this.QR_Load);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox17)).EndInit();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
         #endregion
 
         private System.Windows.Forms.PictureBox pictureBox17;
-        private System.Windows.Forms.Label itemLbl;
+        private System.Windows.Forms.TextBox signedInvoiceTb;
+        private System.Windows.Forms.Button updateBtn;
     }
 }
