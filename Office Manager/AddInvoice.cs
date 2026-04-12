@@ -469,7 +469,7 @@ namespace Office_Manager
             }
 
             IWorkbook templateWorkbook;
-            using (FileStream fs = new FileStream(Path.GetDirectoryName(Application.ExecutablePath) + @"\Files\Invoice" + type + " - 4.xlsx", FileMode.Open, FileAccess.ReadWrite))
+            using (FileStream fs = new FileStream(Path.GetDirectoryName(Application.ExecutablePath) + @"\Files\Invoice" + type + " - 5.xlsx", FileMode.Open, FileAccess.ReadWrite))
             {
                 templateWorkbook = new XSSFWorkbook(fs);
                 fs.Close();
@@ -490,28 +490,28 @@ namespace Office_Manager
             sheet.GetRow(4).GetCell(1).SetCellValue("P: " + cMobile);
             sheet.GetRow(5).GetCell(1).SetCellValue("O: " + cOffice);
             sheet.GetRow(6).GetCell(1).SetCellValue("E: " + cEmail);
-            sheet.GetRow(3).GetCell(6).SetCellValue(invoiceNo.Text);
-            sheet.GetRow(1).GetCell(5).SetCellValue(irn.Text);
-            sheet.GetRow(5).GetCell(6).SetCellValue(invoiceDt.Value.ToString("dd-MMM-yy"));
-            sheet.GetRow(6).GetCell(6).SetCellValue(dueDtTxt);
-            sheet.GetRow(4).GetCell(6).SetCellValue(eWayBill.Text);
+            sheet.GetRow(2).GetCell(7).SetCellValue(invoiceNo.Text);
+            sheet.GetRow(25).GetCell(0).SetCellValue("IRN: " + irn.Text);
+            sheet.GetRow(4).GetCell(7).SetCellValue(invoiceDt.Value.ToString("dd-MMM-yy"));
+            sheet.GetRow(5).GetCell(7).SetCellValue(dueDtTxt);
+            sheet.GetRow(3).GetCell(7).SetCellValue(eWayBill.Text);
             sheet.GetRow(8).GetCell(1).SetCellValue(((KeyValuePair<string, string>)billTo.SelectedItem).Value);
-            sheet.GetRow(8).GetCell(3).SetCellValue(((KeyValuePair<string, string>)shipTo.SelectedItem).Value);
-            sheet.GetRow(8).GetCell(6).SetCellValue(((KeyValuePair<string, string>)agt.SelectedItem).Value);
+            sheet.GetRow(8).GetCell(4).SetCellValue(((KeyValuePair<string, string>)shipTo.SelectedItem).Value);
+            sheet.GetRow(8).GetCell(7).SetCellValue(((KeyValuePair<string, string>)agt.SelectedItem).Value);
             sheet.GetRow(9).GetCell(1).SetCellValue(bGstin);
-            sheet.GetRow(9).GetCell(3).SetCellValue(sGstin);
-            sheet.GetRow(9).GetCell(7).SetCellValue(((KeyValuePair<string, string>)transporter.SelectedItem).Value);
+            sheet.GetRow(9).GetCell(4).SetCellValue(sGstin);
+            sheet.GetRow(9).GetCell(8).SetCellValue(((KeyValuePair<string, string>)transporter.SelectedItem).Value);
             sheet.GetRow(10).GetCell(1).SetCellValue(bAddress);
             sheet.GetRow(10).GetCell(3).SetCellValue(sAddress);
-            sheet.GetRow(10).GetCell(7).SetCellValue(lrNo.Text);
-            sheet.GetRow(11).GetCell(7).SetCellValue(lotNo.Text);
-            sheet.GetRow(26).GetCell(7).SetCellValue(netAmt);
-            sheet.GetRow(28).GetCell(7).SetCellValue(cgstAmt);
-            sheet.GetRow(29).GetCell(7).SetCellValue(sgstAmt);
-            sheet.GetRow(30).GetCell(7).SetCellValue(igstAmt);
-            sheet.GetRow(31).GetCell(7).SetCellValue(totalTax);
-            sheet.GetRow(32).GetCell(6).SetCellValue(roundOff);
-            sheet.GetRow(33).GetCell(6).SetCellValue(billAmt);
+            sheet.GetRow(10).GetCell(8).SetCellValue(lrNo.Text);
+            sheet.GetRow(11).GetCell(8).SetCellValue(lotNo.Text);
+            sheet.GetRow(26).GetCell(8).SetCellValue(netAmt);
+            sheet.GetRow(28).GetCell(8).SetCellValue(cgstAmt);
+            sheet.GetRow(29).GetCell(8).SetCellValue(sgstAmt);
+            sheet.GetRow(30).GetCell(8).SetCellValue(igstAmt);
+            sheet.GetRow(31).GetCell(8).SetCellValue(totalTax);
+            sheet.GetRow(32).GetCell(7).SetCellValue(roundOff);
+            sheet.GetRow(33).GetCell(7).SetCellValue(billAmt);
             sheet.GetRow(34).GetCell(0).SetCellValue(amountInWords);
 
             totalQty = 0;
@@ -560,10 +560,10 @@ namespace Office_Manager
 
                 sheet.GetRow(13 + x).GetCell(0).SetCellValue(roll);
                 sheet.GetRow(13 + x).GetCell(1).SetCellValue(item);
-                sheet.GetRow(13 + x).GetCell(3).SetCellValue(hsn);
-                sheet.GetRow(13 + x).GetCell(4).SetCellValue(qty);
-                sheet.GetRow(13 + x).GetCell(5).SetCellValue(mtr);
-                sheet.GetRow(13 + x).GetCell(6).SetCellValue(rate);
+                sheet.GetRow(13 + x).GetCell(4).SetCellValue(hsn);
+                sheet.GetRow(13 + x).GetCell(5).SetCellValue(qty);
+                sheet.GetRow(13 + x).GetCell(6).SetCellValue(mtr);
+                sheet.GetRow(13 + x).GetCell(7).SetCellValue(rate);
 
                 double amount = round(mtr * rate, 2);
                 if (checkBox1.Checked)
@@ -572,13 +572,13 @@ namespace Office_Manager
                 }
                 totalAmt += amount;
 
-                sheet.GetRow(13 + x).GetCell(7).SetCellValue(amount);
+                sheet.GetRow(13 + x).GetCell(8).SetCellValue(amount);
             }
 
             disc = round(Double.Parse(disount.Text) * totalAmt / 100, 2);
-            sheet.GetRow(24).GetCell(7).SetCellValue(disc);
+            sheet.GetRow(24).GetCell(8).SetCellValue(disc);
 
-            ICellStyle bottomBorderStyle = sheet.GetRow(24).GetCell(3).CellStyle;
+            ICellStyle bottomBorderStyle = sheet.GetRow(24).GetCell(4).CellStyle;
 
             String product = "Roll";
             if (totalQty / rollCount > 1)
@@ -588,16 +588,16 @@ namespace Office_Manager
 
             if (unit.Equals("PRS-PAIRS"))
             {
-                sheet.GetRow(12).GetCell(5).SetCellValue("PAIRS");
+                sheet.GetRow(12).GetCell(6).SetCellValue("PAIRS");
             }
 
             sheet.GetRow(12).GetCell(0).SetCellValue(product.ToUpper() + " NO");
 
             if (rollCount > 1)
             {
-                sheet.GetRow(13 + rollCount).GetCell(4).SetCellValue(totalQty);
-                sheet.GetRow(13 + rollCount).GetCell(5).SetCellValue(meters);
-                sheet.GetRow(13 + rollCount).GetCell(7).SetCellValue(totalAmt);
+                sheet.GetRow(13 + rollCount).GetCell(5).SetCellValue(totalQty);
+                sheet.GetRow(13 + rollCount).GetCell(6).SetCellValue(meters);
+                sheet.GetRow(13 + rollCount).GetCell(8).SetCellValue(totalAmt);
 
                 if (noOfRolls > 0)
                 {
@@ -606,10 +606,10 @@ namespace Office_Manager
 
                 if (rollCount % 2 == 0)
                 {
-                    sheet.GetRow(13 + rollCount).GetCell(4).CellStyle = sheet.GetRow(2).GetCell(0).CellStyle;
                     sheet.GetRow(13 + rollCount).GetCell(5).CellStyle = sheet.GetRow(2).GetCell(0).CellStyle;
-                    sheet.GetRow(13 + rollCount).GetCell(7).CellStyle = sheet.GetRow(5).GetCell(0).CellStyle;
+                    sheet.GetRow(13 + rollCount).GetCell(6).CellStyle = sheet.GetRow(2).GetCell(0).CellStyle;
                     sheet.GetRow(13 + rollCount).GetCell(8).CellStyle = sheet.GetRow(5).GetCell(0).CellStyle;
+                    sheet.GetRow(13 + rollCount).GetCell(9).CellStyle = sheet.GetRow(5).GetCell(0).CellStyle;
 
                     if (noOfRolls > 0)
                     {
@@ -618,10 +618,10 @@ namespace Office_Manager
                 }
                 else
                 {
-                    sheet.GetRow(13 + rollCount).GetCell(4).CellStyle = sheet.GetRow(1).GetCell(0).CellStyle;
                     sheet.GetRow(13 + rollCount).GetCell(5).CellStyle = sheet.GetRow(1).GetCell(0).CellStyle;
-                    sheet.GetRow(13 + rollCount).GetCell(7).CellStyle = sheet.GetRow(4).GetCell(0).CellStyle;
+                    sheet.GetRow(13 + rollCount).GetCell(6).CellStyle = sheet.GetRow(1).GetCell(0).CellStyle;
                     sheet.GetRow(13 + rollCount).GetCell(8).CellStyle = sheet.GetRow(4).GetCell(0).CellStyle;
+                    sheet.GetRow(13 + rollCount).GetCell(9).CellStyle = sheet.GetRow(4).GetCell(0).CellStyle;
 
                     if (noOfRolls > 0)
                     {
@@ -632,7 +632,7 @@ namespace Office_Manager
                 if (rollCount == 10)
                 {
                     sheet.GetRow(24).GetCell(0).CellStyle = bottomBorderStyle;
-                    sheet.GetRow(24).GetCell(4).CellStyle = bottomBorderStyle;
+                    sheet.GetRow(24).GetCell(5).CellStyle = bottomBorderStyle;
                 }
             }
             sheet.GetRow(1).CreateCell(0);
@@ -644,47 +644,47 @@ namespace Office_Manager
 
             if (disount.Text == "0")
             {
-                sheet.GetRow(24).GetCell(6).SetCellValue("Nil");
+                sheet.GetRow(24).GetCell(7).SetCellValue("Nil");
             }
             else
             {
-                sheet.GetRow(24).GetCell(6).SetCellValue(Double.Parse(disount.Text) / 100);
+                sheet.GetRow(24).GetCell(7).SetCellValue(Double.Parse(disount.Text) / 100);
             }
 
             if (cgst.Text == "0")
             {
-                sheet.GetRow(28).GetCell(6).SetCellValue("Nil");
+                sheet.GetRow(28).GetCell(7).SetCellValue("Nil");
             }
             else
             {
-                sheet.GetRow(28).GetCell(6).SetCellValue(Double.Parse(cgst.Text) / 100);
+                sheet.GetRow(28).GetCell(7).SetCellValue(Double.Parse(cgst.Text) / 100);
             }
 
             if (sgst.Text == "0")
             {
-                sheet.GetRow(29).GetCell(6).SetCellValue("Nil");
+                sheet.GetRow(29).GetCell(7).SetCellValue("Nil");
             }
             else
             {
-                sheet.GetRow(29).GetCell(6).SetCellValue(Double.Parse(sgst.Text) / 100);
+                sheet.GetRow(29).GetCell(7).SetCellValue(Double.Parse(sgst.Text) / 100);
             }
 
             if (igst.Text == "0")
             {
-                sheet.GetRow(30).GetCell(6).SetCellValue("Nil");
+                sheet.GetRow(30).GetCell(7).SetCellValue("Nil");
             }
             else
             {
-                sheet.GetRow(30).GetCell(6).SetCellValue(Double.Parse(igst.Text) / 100);
+                sheet.GetRow(30).GetCell(7).SetCellValue(Double.Parse(igst.Text) / 100);
             }
 
             sheet.GetRow(25).GetCell(7).SetCellValue(Double.Parse(freight.Text));
-            sheet.GetRow(27).GetCell(2).SetCellValue(company);
-            sheet.GetRow(28).GetCell(2).SetCellValue(bName);
-            sheet.GetRow(29).GetCell(2).SetCellValue(bkAddress);
-            sheet.GetRow(30).GetCell(2).SetCellValue(ifsc);
-            sheet.GetRow(31).GetCell(2).SetCellValue(acNo);
-            sheet.GetRow(35).GetCell(5).SetCellValue("(For : " + company + ")");
+            sheet.GetRow(27).GetCell(3).SetCellValue(company);
+            sheet.GetRow(28).GetCell(3).SetCellValue(bName);
+            sheet.GetRow(29).GetCell(3).SetCellValue(bkAddress);
+            sheet.GetRow(30).GetCell(3).SetCellValue(ifsc);
+            sheet.GetRow(31).GetCell(3).SetCellValue(acNo);
+            sheet.GetRow(35).GetCell(6).SetCellValue("(For : " + company + ")");
 
             // add company logo
 
@@ -716,7 +716,7 @@ namespace Office_Manager
                         // pixelsPerModule (20), darkColor, lightColor, drawQuietZones (false)
                         using (Bitmap qrBitmap = qrCode.GetGraphic(1, Color.Black, Color.White, false))
                         {
-                            qrSizePixels = (int)(qrBitmap.Width * 1.5);
+                            qrSizePixels = (int)(qrBitmap.Width * 1);
 
                             using (Bitmap scaledBitmap = new Bitmap(qrSizePixels, qrSizePixels))
                             {
@@ -749,8 +749,8 @@ namespace Office_Manager
 
                 // 2. Create anchor pointing ONLY to C1 (Col 2, Row 0)
                 IClientAnchor anchor1 = templateWorkbook.GetCreationHelper().CreateClientAnchor();
-                anchor1.Col1 = 2;
-                anchor1.Row1 = 0;
+                anchor1.Col1 = 0;
+                anchor1.Row1 = 26;
 
                 //anchor1.AnchorType = AnchorType.MoveDontResize;
 
@@ -760,8 +760,8 @@ namespace Office_Manager
                 // 4. Tell NPOI to display it at 100% native scale 
 
                 // 24% X 42% (0.48" X 0.84") - 1.99" X 1.99"
-                double xFactor = 2.17;
-                double yFactor = 4.09;
+                double xFactor = 1.5;
+                double yFactor = 6.44;
 
                 // 98   , 91
                 // 2.182, 2.165
@@ -1188,7 +1188,7 @@ namespace Office_Manager
                     bool b = saveInvoiceNew();
                     flag = true;
 
-                    if(!b)
+                    if (!b)
                     {
                         button6.Text = "Save";
 
@@ -1829,7 +1829,7 @@ namespace Office_Manager
             try
             {
                 godown.SelectedIndex = 1;
-            } 
+            }
             catch
             {
 
@@ -1952,7 +1952,7 @@ namespace Office_Manager
                     if (oReader.Read())
                     {
                         invoiceNo.Text = invNoFromList.ToString();
-                        irn.Text  = oReader["IRN"].ToString();
+                        irn.Text = oReader["IRN"].ToString();
                         CultureInfo ci = CultureInfo.InvariantCulture;
                         string sysFormat = CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern;
                         invoiceDt.Value = DateTime.ParseExact(oReader["BILL_DT"].ToString().Split(' ')[0], sysFormat, ci);
@@ -2142,10 +2142,10 @@ namespace Office_Manager
             }
             isLoading = false;
 
-            if(signedInvoice == null || signedInvoice.Equals(""))
+            if (signedInvoice == null || signedInvoice.Equals(""))
             {
                 qrBtn.BackColor = Color.IndianRed;
-            } 
+            }
             else
             {
                 qrBtn.BackColor = Color.ForestGreen;
@@ -2585,7 +2585,7 @@ namespace Office_Manager
             {
                 bool b = saveInvoiceNew();
                 flag = true;
-                if(!b)
+                if (!b)
                 {
                     updateBtn.Text = "Update";
                     updateBtn.Enabled = true;
@@ -2690,7 +2690,7 @@ namespace Office_Manager
                 SqlConnection con1 = new SqlConnection("Data Source=(localdb)\\VISHAL;AttachDbFilename=|DataDirectory|\\Files\\DBQuery.mdf;Integrated Security=True");
                 con1.Open();
 
-                string query1 = "SELECT '"+ dates[0] +"' START_DT, '"+ dates[1] +"' END_DT, ISNULL(T1.W_NAME, OTH_WEAVER) W_NAME, ISNULL(T1.TECH_NAME, OTH_YARN) TECH_NAME, ISNULL(CONE_SUPPLIED, 0) CONE_SUPPLIED, LAST_SUPPLY_DT, ISNULL(CONE_MFG, 0) CONE_MFG, LAST_MFG_DT, BALANCE FROM ( SELECT W_NAME, TECH_NAME, SUM(SC1.QTY) CONE_SUPPLIED, MAX(TXN_DATE) LAST_SUPPLY_DT FROM SUPPLY_CONE SC1, PRODUCT P, WEAVER W WHERE SC1.YARN = P.PID AND SC1.SUPPLY_TO = W.WID AND TXN_DATE BETWEEN '" + dates[0] +"' AND '"+ dates[1] +"' AND SUPPLY_TO_TYPE = 'W' GROUP BY W_NAME, TECH_NAME) T1 FULL OUTER JOIN (SELECT W_NAME, TECH_NAME, W_NAME OTH_WEAVER, TECH_NAME OTH_YARN, SUM(SC1.QTY) CONE_MFG, MAX(TXN_DATE) LAST_MFG_DT FROM SUPPLY_CONE SC1, PRODUCT P, WEAVER W WHERE SC1.YARN = P.PID AND SC1.SUPPLY_FROM = W.WID AND TXN_DATE BETWEEN '"+ dates[0] +"' AND '"+ dates[1] +"' AND SUPPLY_FROM_TYPE = 'W' AND SUPPLY_TO_TYPE IN ('R', 'T') GROUP BY W_NAME, TECH_NAME) T2 ON T1.W_NAME = T2.W_NAME AND T1.TECH_NAME = T2.TECH_NAME LEFT OUTER JOIN (SELECT W_NAME, TECH_NAME, SUM(BALANCE) BALANCE FROM ( SELECT W_NAME, TECH_NAME, SUM(QTY) BALANCE FROM SUPPLY_CONE SC, WEAVER W, PRODUCT P WHERE P.PID = SC.YARN AND W.WID = SC.SUPPLY_TO AND SUPPLY_TO_TYPE = 'W' GROUP BY W_NAME, TECH_NAME UNION SELECT W_NAME, TECH_NAME, -SUM(QTY) BALANCE FROM SUPPLY_CONE SC, WEAVER W, PRODUCT P WHERE P.PID = SC.YARN AND W.WID = SC.SUPPLY_FROM AND SUPPLY_FROM_TYPE = 'W' GROUP BY W_NAME, TECH_NAME) T GROUP BY W_NAME, TECH_NAME) T3 ON T2.W_NAME = T3.W_NAME AND T2.TECH_NAME = T3.TECH_NAME UNION SELECT '"+ dates[2] +"' START_DT, '"+ dates[3] +"' END_DT, ISNULL(T1.W_NAME, OTH_WEAVER) W_NAME, ISNULL(T1.TECH_NAME, OTH_YARN) TECH_NAME, ISNULL(CONE_SUPPLIED, 0) CONE_SUPPLIED, LAST_SUPPLY_DT, ISNULL(CONE_MFG, 0) CONE_MFG, LAST_MFG_DT, BALANCE FROM ( SELECT W_NAME, TECH_NAME, SUM(SC1.QTY) CONE_SUPPLIED, MAX(TXN_DATE) LAST_SUPPLY_DT FROM SUPPLY_CONE SC1, PRODUCT P, WEAVER W WHERE SC1.YARN = P.PID AND SC1.SUPPLY_TO = W.WID AND TXN_DATE BETWEEN '"+ dates[2] +"' AND '"+ dates[3] +"' AND SUPPLY_TO_TYPE = 'W' GROUP BY W_NAME, TECH_NAME) T1 FULL OUTER JOIN (SELECT W_NAME, TECH_NAME, W_NAME OTH_WEAVER, TECH_NAME OTH_YARN, SUM(SC1.QTY) CONE_MFG, MAX(TXN_DATE) LAST_MFG_DT FROM SUPPLY_CONE SC1, PRODUCT P, WEAVER W WHERE SC1.YARN = P.PID AND SC1.SUPPLY_FROM = W.WID AND TXN_DATE BETWEEN '"+ dates[2] +"' AND '"+ dates[3] +"' AND SUPPLY_FROM_TYPE = 'W' AND SUPPLY_TO_TYPE IN ('R', 'T') GROUP BY W_NAME, TECH_NAME) T2 ON T1.W_NAME = T2.W_NAME AND T1.TECH_NAME = T2.TECH_NAME LEFT OUTER JOIN (SELECT W_NAME, TECH_NAME, SUM(BALANCE) BALANCE FROM ( SELECT W_NAME, TECH_NAME, SUM(QTY) BALANCE FROM SUPPLY_CONE SC, WEAVER W, PRODUCT P WHERE P.PID = SC.YARN AND W.WID = SC.SUPPLY_TO AND SUPPLY_TO_TYPE = 'W' GROUP BY W_NAME, TECH_NAME UNION SELECT W_NAME, TECH_NAME, -SUM(QTY) BALANCE FROM SUPPLY_CONE SC, WEAVER W, PRODUCT P WHERE P.PID = SC.YARN AND W.WID = SC.SUPPLY_FROM AND SUPPLY_FROM_TYPE = 'W' GROUP BY W_NAME, TECH_NAME) T GROUP BY W_NAME, TECH_NAME) T3 ON T2.W_NAME = T3.W_NAME AND T2.TECH_NAME = T3.TECH_NAME UNION SELECT '"+ dates[4] +"' START_DT, '"+ dates[5] +"' END_DT, ISNULL(T1.W_NAME, OTH_WEAVER) W_NAME, ISNULL(T1.TECH_NAME, OTH_YARN) TECH_NAME, ISNULL(CONE_SUPPLIED, 0) CONE_SUPPLIED, LAST_SUPPLY_DT, ISNULL(CONE_MFG, 0) CONE_MFG, LAST_MFG_DT, BALANCE FROM ( SELECT W_NAME, TECH_NAME, SUM(SC1.QTY) CONE_SUPPLIED, MAX(TXN_DATE) LAST_SUPPLY_DT FROM SUPPLY_CONE SC1, PRODUCT P, WEAVER W WHERE SC1.YARN = P.PID AND SC1.SUPPLY_TO = W.WID AND TXN_DATE BETWEEN '"+ dates[4] +"' AND '"+ dates[5] +"' AND SUPPLY_TO_TYPE = 'W' GROUP BY W_NAME, TECH_NAME) T1 FULL OUTER JOIN (SELECT W_NAME, TECH_NAME, W_NAME OTH_WEAVER, TECH_NAME OTH_YARN, SUM(SC1.QTY) CONE_MFG, MAX(TXN_DATE) LAST_MFG_DT FROM SUPPLY_CONE SC1, PRODUCT P, WEAVER W WHERE SC1.YARN = P.PID AND SC1.SUPPLY_FROM = W.WID AND TXN_DATE BETWEEN '"+ dates[4] +"' AND '"+ dates[5] +"' AND SUPPLY_FROM_TYPE = 'W' AND SUPPLY_TO_TYPE IN ('R', 'T') GROUP BY W_NAME, TECH_NAME) T2 ON T1.W_NAME = T2.W_NAME AND T1.TECH_NAME = T2.TECH_NAME LEFT OUTER JOIN (SELECT W_NAME, TECH_NAME, SUM(BALANCE) BALANCE FROM ( SELECT W_NAME, TECH_NAME, SUM(QTY) BALANCE FROM SUPPLY_CONE SC, WEAVER W, PRODUCT P WHERE P.PID = SC.YARN AND W.WID = SC.SUPPLY_TO AND SUPPLY_TO_TYPE = 'W' GROUP BY W_NAME, TECH_NAME UNION SELECT W_NAME, TECH_NAME, -SUM(QTY) BALANCE FROM SUPPLY_CONE SC, WEAVER W, PRODUCT P WHERE P.PID = SC.YARN AND W.WID = SC.SUPPLY_FROM AND SUPPLY_FROM_TYPE = 'W' GROUP BY W_NAME, TECH_NAME) T GROUP BY W_NAME, TECH_NAME) T3 ON T2.W_NAME = T3.W_NAME AND T2.TECH_NAME = T3.TECH_NAME ORDER BY W_NAME";
+                string query1 = "SELECT '" + dates[0] + "' START_DT, '" + dates[1] + "' END_DT, ISNULL(T1.W_NAME, OTH_WEAVER) W_NAME, ISNULL(T1.TECH_NAME, OTH_YARN) TECH_NAME, ISNULL(CONE_SUPPLIED, 0) CONE_SUPPLIED, LAST_SUPPLY_DT, ISNULL(CONE_MFG, 0) CONE_MFG, LAST_MFG_DT, BALANCE FROM ( SELECT W_NAME, TECH_NAME, SUM(SC1.QTY) CONE_SUPPLIED, MAX(TXN_DATE) LAST_SUPPLY_DT FROM SUPPLY_CONE SC1, PRODUCT P, WEAVER W WHERE SC1.YARN = P.PID AND SC1.SUPPLY_TO = W.WID AND TXN_DATE BETWEEN '" + dates[0] + "' AND '" + dates[1] + "' AND SUPPLY_TO_TYPE = 'W' GROUP BY W_NAME, TECH_NAME) T1 FULL OUTER JOIN (SELECT W_NAME, TECH_NAME, W_NAME OTH_WEAVER, TECH_NAME OTH_YARN, SUM(SC1.QTY) CONE_MFG, MAX(TXN_DATE) LAST_MFG_DT FROM SUPPLY_CONE SC1, PRODUCT P, WEAVER W WHERE SC1.YARN = P.PID AND SC1.SUPPLY_FROM = W.WID AND TXN_DATE BETWEEN '" + dates[0] + "' AND '" + dates[1] + "' AND SUPPLY_FROM_TYPE = 'W' AND SUPPLY_TO_TYPE IN ('R', 'T') GROUP BY W_NAME, TECH_NAME) T2 ON T1.W_NAME = T2.W_NAME AND T1.TECH_NAME = T2.TECH_NAME LEFT OUTER JOIN (SELECT W_NAME, TECH_NAME, SUM(BALANCE) BALANCE FROM ( SELECT W_NAME, TECH_NAME, SUM(QTY) BALANCE FROM SUPPLY_CONE SC, WEAVER W, PRODUCT P WHERE P.PID = SC.YARN AND W.WID = SC.SUPPLY_TO AND SUPPLY_TO_TYPE = 'W' GROUP BY W_NAME, TECH_NAME UNION SELECT W_NAME, TECH_NAME, -SUM(QTY) BALANCE FROM SUPPLY_CONE SC, WEAVER W, PRODUCT P WHERE P.PID = SC.YARN AND W.WID = SC.SUPPLY_FROM AND SUPPLY_FROM_TYPE = 'W' GROUP BY W_NAME, TECH_NAME) T GROUP BY W_NAME, TECH_NAME) T3 ON T2.W_NAME = T3.W_NAME AND T2.TECH_NAME = T3.TECH_NAME UNION SELECT '" + dates[2] + "' START_DT, '" + dates[3] + "' END_DT, ISNULL(T1.W_NAME, OTH_WEAVER) W_NAME, ISNULL(T1.TECH_NAME, OTH_YARN) TECH_NAME, ISNULL(CONE_SUPPLIED, 0) CONE_SUPPLIED, LAST_SUPPLY_DT, ISNULL(CONE_MFG, 0) CONE_MFG, LAST_MFG_DT, BALANCE FROM ( SELECT W_NAME, TECH_NAME, SUM(SC1.QTY) CONE_SUPPLIED, MAX(TXN_DATE) LAST_SUPPLY_DT FROM SUPPLY_CONE SC1, PRODUCT P, WEAVER W WHERE SC1.YARN = P.PID AND SC1.SUPPLY_TO = W.WID AND TXN_DATE BETWEEN '" + dates[2] + "' AND '" + dates[3] + "' AND SUPPLY_TO_TYPE = 'W' GROUP BY W_NAME, TECH_NAME) T1 FULL OUTER JOIN (SELECT W_NAME, TECH_NAME, W_NAME OTH_WEAVER, TECH_NAME OTH_YARN, SUM(SC1.QTY) CONE_MFG, MAX(TXN_DATE) LAST_MFG_DT FROM SUPPLY_CONE SC1, PRODUCT P, WEAVER W WHERE SC1.YARN = P.PID AND SC1.SUPPLY_FROM = W.WID AND TXN_DATE BETWEEN '" + dates[2] + "' AND '" + dates[3] + "' AND SUPPLY_FROM_TYPE = 'W' AND SUPPLY_TO_TYPE IN ('R', 'T') GROUP BY W_NAME, TECH_NAME) T2 ON T1.W_NAME = T2.W_NAME AND T1.TECH_NAME = T2.TECH_NAME LEFT OUTER JOIN (SELECT W_NAME, TECH_NAME, SUM(BALANCE) BALANCE FROM ( SELECT W_NAME, TECH_NAME, SUM(QTY) BALANCE FROM SUPPLY_CONE SC, WEAVER W, PRODUCT P WHERE P.PID = SC.YARN AND W.WID = SC.SUPPLY_TO AND SUPPLY_TO_TYPE = 'W' GROUP BY W_NAME, TECH_NAME UNION SELECT W_NAME, TECH_NAME, -SUM(QTY) BALANCE FROM SUPPLY_CONE SC, WEAVER W, PRODUCT P WHERE P.PID = SC.YARN AND W.WID = SC.SUPPLY_FROM AND SUPPLY_FROM_TYPE = 'W' GROUP BY W_NAME, TECH_NAME) T GROUP BY W_NAME, TECH_NAME) T3 ON T2.W_NAME = T3.W_NAME AND T2.TECH_NAME = T3.TECH_NAME UNION SELECT '" + dates[4] + "' START_DT, '" + dates[5] + "' END_DT, ISNULL(T1.W_NAME, OTH_WEAVER) W_NAME, ISNULL(T1.TECH_NAME, OTH_YARN) TECH_NAME, ISNULL(CONE_SUPPLIED, 0) CONE_SUPPLIED, LAST_SUPPLY_DT, ISNULL(CONE_MFG, 0) CONE_MFG, LAST_MFG_DT, BALANCE FROM ( SELECT W_NAME, TECH_NAME, SUM(SC1.QTY) CONE_SUPPLIED, MAX(TXN_DATE) LAST_SUPPLY_DT FROM SUPPLY_CONE SC1, PRODUCT P, WEAVER W WHERE SC1.YARN = P.PID AND SC1.SUPPLY_TO = W.WID AND TXN_DATE BETWEEN '" + dates[4] + "' AND '" + dates[5] + "' AND SUPPLY_TO_TYPE = 'W' GROUP BY W_NAME, TECH_NAME) T1 FULL OUTER JOIN (SELECT W_NAME, TECH_NAME, W_NAME OTH_WEAVER, TECH_NAME OTH_YARN, SUM(SC1.QTY) CONE_MFG, MAX(TXN_DATE) LAST_MFG_DT FROM SUPPLY_CONE SC1, PRODUCT P, WEAVER W WHERE SC1.YARN = P.PID AND SC1.SUPPLY_FROM = W.WID AND TXN_DATE BETWEEN '" + dates[4] + "' AND '" + dates[5] + "' AND SUPPLY_FROM_TYPE = 'W' AND SUPPLY_TO_TYPE IN ('R', 'T') GROUP BY W_NAME, TECH_NAME) T2 ON T1.W_NAME = T2.W_NAME AND T1.TECH_NAME = T2.TECH_NAME LEFT OUTER JOIN (SELECT W_NAME, TECH_NAME, SUM(BALANCE) BALANCE FROM ( SELECT W_NAME, TECH_NAME, SUM(QTY) BALANCE FROM SUPPLY_CONE SC, WEAVER W, PRODUCT P WHERE P.PID = SC.YARN AND W.WID = SC.SUPPLY_TO AND SUPPLY_TO_TYPE = 'W' GROUP BY W_NAME, TECH_NAME UNION SELECT W_NAME, TECH_NAME, -SUM(QTY) BALANCE FROM SUPPLY_CONE SC, WEAVER W, PRODUCT P WHERE P.PID = SC.YARN AND W.WID = SC.SUPPLY_FROM AND SUPPLY_FROM_TYPE = 'W' GROUP BY W_NAME, TECH_NAME) T GROUP BY W_NAME, TECH_NAME) T3 ON T2.W_NAME = T3.W_NAME AND T2.TECH_NAME = T3.TECH_NAME ORDER BY W_NAME";
 
                 SqlCommand oCmd1 = new SqlCommand(query1, con1);
 
