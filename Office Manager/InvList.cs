@@ -1807,6 +1807,8 @@ namespace Office_Manager
 
         private void printEwb(Dictionary<string, string> eWayBillIds, IWebDriver driver)
         {
+            exitClicked = false;
+            fakeCaptchaSubmitted = false;
             try
             {
                 con.Open();
@@ -2107,10 +2109,25 @@ namespace Office_Manager
             }
         }
 
+        private void waitForEInvoiceHomePage(IWebDriver driver)
+        {
+            try
+            {
+                WebDriverWait waitForElement = new WebDriverWait(driver, TimeSpan.FromSeconds(120));
+                waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"accordion\"]/li[1]/a")));
+            }
+            catch 
+            {
+                driver.SwitchTo().Alert().Accept();
+                waitForEInvoiceHomePage(driver);
+            }
+        }
+
         private void RunEInvoiceAutomation(string targetCompany)
         {
             // Initialize dictionaries locally to avoid cross-thread issues
             var localEWayBillIds = new Dictionary<string, string>();
+            var ewbToPrint = new Dictionary<string, string>();
             var localIrnNos = new Dictionary<string, string>();
             var localAckNos = new Dictionary<string, string>();
 
@@ -2146,9 +2163,28 @@ namespace Office_Manager
             {
                 ChromeDriverService chromeDriverService = ChromeDriverService.CreateDefaultService();
                 chromeDriverService.HideCommandPromptWindow = true;
+                // Suppresses extra diagnostic windows that security tools sometimes trigger
+                chromeDriverService.SuppressInitialDiagnosticInformation = true;
 
                 ChromeOptions options = new ChromeOptions();
-                options.AddArguments("disable-infobars");
+                options.AddArgument("disable-infobars");
+
+                // 1. Disable extensions (The most likely culprit on an office PC)
+                options.AddArgument("--disable-extensions");
+
+                // 2. Prevent Chrome's crash reporter and hardware acceleration from spawning extra cmd windows
+                options.AddArgument("--disable-gpu");
+                options.AddArgument("--disable-crash-reporter");
+                options.AddArgument("--disable-in-process-stack-traces");
+                options.AddArgument("--disable-logging");
+                options.AddArgument("--log-level=3"); // Only log fatal errors
+
+                // 3. Sandbox bypass (often required in strict corporate endpoint environments)
+                options.AddArgument("--no-sandbox");
+                options.AddArgument("--disable-dev-shm-usage");
+
+                // Optional: Hide the "Chrome is being controlled by automated software" banner
+                options.AddExcludedArgument("enable-automation");
 
                 driver = new ChromeDriver(chromeDriverService, options, TimeSpan.FromSeconds(6000));
                 driver.Navigate().GoToUrl("https://einvoice1.gst.gov.in/");
@@ -2160,23 +2196,74 @@ namespace Office_Manager
                 waitForElement.Until(ExpectedConditions.ElementIsVisible(By.Id("btnLogin")));
                 driver.FindElement(By.Id("btnLogin")).Click();
 
-                // Login
-                waitForElement.Until(ExpectedConditions.ElementIsVisible(By.Id("txtUserName")));
-                driver.FindElement(By.Id("txtUserName")).SendKeys(username);
-                driver.FindElement(By.Id("txt_password")).SendKeys(password);
-                driver.FindElement(By.Id("CaptchaCode")).Click();
+                bool isOtpReached = false;
 
-                try
+                // Outer loop: Keep running until we successfully reach the OTP page
+                while (!isOtpReached)
                 {
-                    waitForElement.Until(ExpectedConditions.ElementIsVisible(By.Id("txtOtp")));
-                }
-                catch
-                {
-                    driver.SwitchTo().Alert().Accept();
+                    // 1. Wait for elements and fill credentials
+                    waitForElement.Until(ExpectedConditions.ElementIsVisible(By.Id("txtUserName")));
+
+                    var userField = driver.FindElement(By.Id("txtUserName"));
+                    if(userField.GetAttribute("value").Equals(""))
+                    {
+                        userField.SendKeys(username);
+
+                        var passField = driver.FindElement(By.Id("txt_password"));
+                        passField.SendKeys(password);
+
+                        driver.FindElement(By.Id("CaptchaCode")).Click();
+                    }
+
+                    // 2. Inner loop: Poll for the outcome (OTP, Alert, or Error)
+                    bool outcomeDetermined = false;
+                    while (!outcomeDetermined)
+                    {
+                        // Outcome B: Failure - An Alert popped up
+                        try
+                        {
+                            IAlert alert = driver.SwitchTo().Alert();
+                            alert.Accept(); // Handle the alert
+                            outcomeDetermined = true; // Break inner loop to retry credentials
+
+                            driver.FindElement(By.Id("txtOtp")).Click();
+                            continue;
+                        }
+                        catch (NoAlertPresentException)
+                        {
+                            // No alert present, ignore and continue checking
+                        }
+
+                        // Outcome A: Success - OTP field is present and visible
+                        var otpElements = driver.FindElements(By.Id("txtOtp"));
+                        if (otpElements.Count > 0 && otpElements[0].Displayed)
+                        {
+                            isOtpReached = true;     // We succeeded, this will break the outer loop
+                            outcomeDetermined = true; // Break the inner loop
+                            continue;
+                        }
+
+                        // Outcome C: Failure - The Error Div expanded
+                        var errorElements = driver.FindElements(By.ClassName("divError"));
+                        // We check if it exists, is displayed, AND has a height greater than 0
+                        if (errorElements.Count > 0 && errorElements[0].Displayed && errorElements[0].Size.Height > 0)
+                        {
+                            // You might want a tiny sleep here to let the user see the error before wiping it
+                            Thread.Sleep(1000);
+                            outcomeDetermined = true; // Break inner loop to retry credentials
+                            continue;
+                        }
+
+                        // If none of the 3 conditions are met yet, wait half a second and check again
+                        if (!outcomeDetermined)
+                        {
+                            Thread.Sleep(500);
+                        }
+                    }
                 }
 
                 // Click eInvoice -> Generate Bulk
-                waitForElement.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id=\"accordion\"]/li[1]/a")));
+                waitForEInvoiceHomePage(driver);
                 driver.FindElement(By.XPath("//*[@id=\"accordion\"]/li[1]/a")).Click();
                 Thread.Sleep(500);
                 driver.FindElement(By.XPath("//*[@id=\"collapseOne\"]/div/ul/li[1]/a")).Click();
@@ -2202,6 +2289,11 @@ namespace Office_Manager
                         string irn = columns[7].Text.Trim();
                         string ewbNo = columns[8].Text.Trim();
 
+                        if(!string.IsNullOrEmpty(ewbNo))
+                        {
+                            ewbToPrint[invoiceNo] = ewbNo;
+                        }
+
                         localEWayBillIds[invoiceNo] = ewbNo;
                         localIrnNos[invoiceNo] = irn;
                         localAckNos[invoiceNo] = ackNo;
@@ -2215,7 +2307,23 @@ namespace Office_Manager
                 if (File.Exists(zipFilePath)) File.Delete(zipFilePath);
 
                 waitForElement.Until(ExpectedConditions.ElementToBeClickable(By.XPath("//*[@id=\"maindiv\"]/div/form/div[6]/div/div/div[2]/div[1]/a[1]")));
-                driver.FindElement(By.XPath("//*[@id=\"maindiv\"]/div/form/div[6]/div/div/div[2]/div[1]/a[1]")).Click();
+                try
+                {
+                    driver.FindElement(By.XPath("//*[@id=\"maindiv\"]/div/form/div[6]/div/div/div[2]/div[1]/a[1]")).Click();
+                }
+                catch
+                {
+                    try
+                    {
+                        IWebElement button = driver.FindElement(By.XPath("//*[@id=\"maindiv\"]/div/form/div[6]/div/div/div[2]/div[1]/a[1]"));
+                        IJavaScriptExecutor js = (IJavaScriptExecutor)driver;
+                        js.ExecuteScript("arguments[0].click();", button);
+                    } 
+                    catch
+                    {
+
+                    }
+                }
 
                 int timeout = 30;
                 while (!File.Exists(zipFilePath) && timeout > 0)
@@ -2283,7 +2391,11 @@ namespace Office_Manager
                 File.Delete(zipFilePath);
 
                 // Pass the driver to your print function (ensure this function doesn't update the UI directly)
-                printEwb(localEWayBillIds, driver);
+                if (ewbToPrint.Count > 0)
+                {
+                    printEwb(ewbToPrint, driver);
+                    Thread.Sleep(4000);
+                }
             }
             finally
             {

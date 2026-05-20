@@ -1,19 +1,25 @@
-﻿using System;
-using System.Windows.Forms;
-using Microsoft.Office.Core;
+﻿using Microsoft.Office.Core;
 using Microsoft.Office.Interop.Excel;
-using System.Runtime.InteropServices;
-using System.Reflection;
-using System.Runtime.InteropServices.ComTypes;
-using System.Diagnostics;
+using System;
 using System.Data.SqlClient;
+using System.Diagnostics;
+using System.Drawing.Printing;
 using System.IO;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Runtime.InteropServices;
+using System.Management;
 
 namespace Office_Manager
 {
     public partial class PreviewBill : Form
     {
+        [DllImport("winspool.drv", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern bool SetDefaultPrinter(string Name);
         SqlConnection con = new SqlConnection("Data Source=(localdb)\\VISHAL;AttachDbFilename=|DataDirectory|\\Files\\DBQuery.mdf;Integrated Security=True");
 
         private string m_ExcelFileName;
@@ -27,6 +33,7 @@ namespace Office_Manager
         private Microsoft.Office.Interop.Excel.Application m_XlApplication = null;
         // Contains a reference to the active workbook
         private Workbook m_Workbook = null;
+        private string defaultPrinter = "";
 
         public PreviewBill(string billNo, string firm, byte[] logoPath)
         {
@@ -58,6 +65,32 @@ namespace Office_Manager
             
         }
 
+        private void LoadPrinters()
+        {
+            printersCb.Items.Clear();
+
+            // 1. Loop through all installed printers and add them to the ComboBox
+            foreach (string printer in PrinterSettings.InstalledPrinters)
+            {
+                printersCb.Items.Add(printer);
+            }
+
+            // 2. Get the current default system printer
+            PrinterSettings settings = new PrinterSettings();
+            defaultPrinter = settings.PrinterName;
+
+            // 3. Select the default printer in the ComboBox if it exists in the list
+            if (printersCb.Items.Contains(defaultPrinter))
+            {
+                printersCb.SelectedItem = defaultPrinter;
+            }
+            else if (printersCb.Items.Count > 0)
+            {
+                // Fallback: select the first item if the default isn't found
+                printersCb.SelectedIndex = 0;
+            }
+        }
+
         public void OpenFile()
         {
             // Check the file exists
@@ -65,6 +98,8 @@ namespace Office_Manager
             // Load the workbook in the WebBrowser control
             //this.webBrowser1.Navigate(m_ExcelFileName, false);
         }
+
+
 
         private void PreviewBill_Load(object sender, EventArgs e)
         {
@@ -79,6 +114,7 @@ namespace Office_Manager
             {
                 tc.Checked = false;
             }
+            LoadPrinters();
         }
 
         private void webBrowser1_Navigated(object sender, WebBrowserNavigatedEventArgs e)
@@ -136,6 +172,43 @@ namespace Office_Manager
             return null;
         }
 
+        private bool SetDefaultPrinterWMI(string printerName)
+        {
+            try
+            {
+                // Query the OS for all installed printers
+                string query = "SELECT * FROM Win32_Printer";
+
+                using (ManagementObjectSearcher searcher = new ManagementObjectSearcher(query))
+                using (ManagementObjectCollection printers = searcher.Get())
+                {
+                    foreach (ManagementObject printer in printers)
+                    {
+                        // Check if the current printer matches the target name (ignoring case)
+                        string currentName = printer["Name"]?.ToString();
+
+                        if (string.Equals(currentName, printerName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            // Invoke the hardware-level SetDefaultPrinter method
+                            ManagementBaseObject outParams = printer.InvokeMethod("SetDefaultPrinter", null, null);
+
+                            // A return value of 0 means absolute success at the WMI level
+                            if (outParams != null && (uint)outParams["ReturnValue"] == 0)
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+                return false; // Printer name was not found in WMI
+            }
+            catch (Exception ex)
+            {
+                // Log the error if necessary
+                return false;
+            }
+        }
+
         private void SendToPrinter(String fileName)
         {
             ProcessStartInfo info = new ProcessStartInfo(fileName);
@@ -153,9 +226,60 @@ namespace Office_Manager
                 System.Threading.Thread.Sleep(3000);
                 if (false == p.CloseMainWindow())
                     p.Kill();
-            } catch
+            }
+            catch
             {
 
+            }
+        }
+
+        private void SendToPrinter(string fileName, string targetPrinterName)
+        {
+            PrinterSettings settings = new PrinterSettings();
+            string originalDefaultPrinter = settings.PrinterName;
+
+            try
+            {
+                // 1. Force the spooler to change the default printer
+                bool success = SetDefaultPrinterWMI(targetPrinterName);
+
+                if (!success)
+                {
+                    MessageBox.Show("Could not change the default printer.");
+                    return;
+                }
+                defaultPrinter = targetPrinterName;
+
+                // 2. Print using the default verb
+                ProcessStartInfo info = new ProcessStartInfo(fileName);
+                info.Verb = "Print";
+                info.UseShellExecute = true;
+                info.CreateNoWindow = true;
+                info.WindowStyle = ProcessWindowStyle.Hidden;
+
+                Process p = new Process();
+                p.StartInfo = info;
+                p.Start();
+
+                p.WaitForInputIdle();
+                bool exitedCleanly = p.WaitForExit(60000);
+
+                if (!exitedCleanly)
+                {
+                    if (!p.CloseMainWindow())
+                    {
+                        p.Kill();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error printing: {ex.Message}");
+            }
+            finally
+            {
+                // 3. Force the spooler to restore the original printer
+                //ForceSetDefaultPrinter(originalDefaultPrinter);
             }
         }
 
@@ -188,17 +312,52 @@ namespace Office_Manager
 
         private void button6_Click(object sender, EventArgs e)
         {
-            if (oc.Checked)
+            if(printersCb.SelectedItem.ToString().Equals(defaultPrinter))
             {
-                SendToPrinter(Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath) + @"\Files\AE-SC.xlsx");
-            }
-            if (tc.Checked)
+                if (oc.Checked)
+                {
+                    SendToPrinter(Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath) + @"\Files\AE-SC.xlsx");
+                }
+                if (tc.Checked)
+                {
+                    SendToPrinter(Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath) + @"\Files\AE-TC.xlsx");
+                }
+                if (cc.Checked)
+                {
+                    SendToPrinter(Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath) + @"\Files\AE-CC.xlsx");
+                }
+            } 
+            else
             {
-                SendToPrinter(Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath) + @"\Files\AE-TC.xlsx");
-            }
-            if (cc.Checked)
-            {
-                SendToPrinter(Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath) + @"\Files\AE-CC.xlsx");
+                bool printed = false;
+                if (oc.Checked)
+                {
+                    SendToPrinter(Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath) + @"\Files\AE-SC.xlsx", printersCb.SelectedItem.ToString());
+                    printed = true;
+                }
+                if (tc.Checked)
+                {
+                    if (printed)
+                    {
+                        SendToPrinter(Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath) + @"\Files\AE-TC.xlsx");
+                    }
+                    else
+                    {
+                        SendToPrinter(Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath) + @"\Files\AE-TC.xlsx", printersCb.SelectedItem.ToString());
+                    }
+                    printed = true;
+                }
+                if (cc.Checked)
+                {
+                    if (printed)
+                    {
+                        SendToPrinter(Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath) + @"\Files\AE-CC.xlsx");
+                    } 
+                    else
+                    {
+                        SendToPrinter(Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath) + @"\Files\AE-CC.xlsx", printersCb.SelectedItem.ToString());
+                    }
+                }
             }
         }
 

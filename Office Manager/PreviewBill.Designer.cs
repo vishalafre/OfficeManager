@@ -31,6 +31,8 @@
             this.button7 = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.addInv = new System.Windows.Forms.Panel();
+            this.printersCb = new System.Windows.Forms.ComboBox();
+            this.label3 = new System.Windows.Forms.Label();
             this.button6 = new System.Windows.Forms.Button();
             this.cc = new System.Windows.Forms.CheckBox();
             this.tc = new System.Windows.Forms.CheckBox();
@@ -74,6 +76,8 @@
             // addInv
             // 
             this.addInv.BackColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.addInv.Controls.Add(this.printersCb);
+            this.addInv.Controls.Add(this.label3);
             this.addInv.Controls.Add(this.button6);
             this.addInv.Controls.Add(this.cc);
             this.addInv.Controls.Add(this.tc);
@@ -85,6 +89,27 @@
             this.addInv.Name = "addInv";
             this.addInv.Size = new System.Drawing.Size(1485, 740);
             this.addInv.TabIndex = 54;
+            // 
+            // printersCb
+            // 
+            this.printersCb.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.printersCb.FormattingEnabled = true;
+            this.printersCb.Location = new System.Drawing.Point(684, 251);
+            this.printersCb.Margin = new System.Windows.Forms.Padding(4);
+            this.printersCb.Name = "printersCb";
+            this.printersCb.Size = new System.Drawing.Size(444, 24);
+            this.printersCb.TabIndex = 65;
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label3.Location = new System.Drawing.Point(592, 251);
+            this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(66, 20);
+            this.label3.TabIndex = 66;
+            this.label3.Text = "Printer";
             // 
             // button6
             // 
@@ -288,5 +313,7 @@
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.Button button9;
         private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.ComboBox printersCb;
+        private System.Windows.Forms.Label label3;
     }
 }

@@ -502,7 +502,7 @@ namespace Office_Manager
             sheet.GetRow(9).GetCell(4).SetCellValue(sGstin);
             sheet.GetRow(9).GetCell(8).SetCellValue(((KeyValuePair<string, string>)transporter.SelectedItem).Value);
             sheet.GetRow(10).GetCell(1).SetCellValue(bAddress);
-            sheet.GetRow(10).GetCell(3).SetCellValue(sAddress);
+            sheet.GetRow(10).GetCell(4).SetCellValue(sAddress);
             sheet.GetRow(10).GetCell(8).SetCellValue(lrNo.Text);
             sheet.GetRow(11).GetCell(8).SetCellValue(lotNo.Text);
             sheet.GetRow(26).GetCell(8).SetCellValue(netAmt);
@@ -678,7 +678,7 @@ namespace Office_Manager
                 sheet.GetRow(30).GetCell(7).SetCellValue(Double.Parse(igst.Text) / 100);
             }
 
-            sheet.GetRow(25).GetCell(7).SetCellValue(Double.Parse(freight.Text));
+            sheet.GetRow(25).GetCell(8).SetCellValue(Double.Parse(freight.Text));
             sheet.GetRow(27).GetCell(3).SetCellValue(company);
             sheet.GetRow(28).GetCell(3).SetCellValue(bName);
             sheet.GetRow(29).GetCell(3).SetCellValue(bkAddress);
