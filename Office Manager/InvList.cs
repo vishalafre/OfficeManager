@@ -1572,6 +1572,8 @@ namespace Office_Manager
             // Capture UI variables to pass to the background thread
             string targetCompany = company;
 
+            KillChromeDriverProcesses();
+
             try
             {
                 // 2. Await the background task and capture the resulting dictionary
@@ -1934,6 +1936,8 @@ namespace Office_Manager
 
         private async void button15_Click(object sender, EventArgs e)
         {
+            KillChromeDriverProcesses();
+
             // 1. Disable the button to prevent multiple clicks
             if (sender is Control ctrl) ctrl.Enabled = false;
 
@@ -2073,6 +2077,33 @@ namespace Office_Manager
             return localEWayBillIds;
         }
 
+        private void KillChromeDriverProcesses()
+        {
+            // IMPORTANT: Omit the ".exe" extension when searching by name
+            Process[] chromeDrivers = Process.GetProcessesByName("chromedriver");
+
+            if (chromeDrivers.Length > 0)
+            {
+                int killedCount = 0;
+
+                foreach (Process process in chromeDrivers)
+                {
+                    try
+                    {
+                        // Attempt to kill the process
+                        process.Kill();
+
+                        // Optional: Wait a brief moment to ensure it has terminated
+                        process.WaitForExit(1000);
+                        killedCount++;
+                    }
+                    catch (Exception ex)
+                    {
+                    }
+                }
+            }
+        }
+
         private async void button16_Click(object sender, EventArgs e)
         {
             // 1. Disable the button so the user can't click it twice while it's running
@@ -2081,6 +2112,8 @@ namespace Office_Manager
             // 2. Grab any UI variables BEFORE moving to the background thread.
             // If 'company' is tied to a UI control (like a TextBox), read it here.
             string targetCompany = company;
+
+            KillChromeDriverProcesses();
 
             try
             {
@@ -2201,6 +2234,22 @@ namespace Office_Manager
                 // Outer loop: Keep running until we successfully reach the OTP page
                 while (!isOtpReached)
                 {
+                    try
+                    {
+                        IAlert alert = driver.SwitchTo().Alert();
+                        alert.Accept(); // Handle the alert
+
+                        if (driver.FindElements(By.Id("txtOtp")).Count > 0)
+                        {
+                            isOtpReached = true; // If OTP field is present after accepting alert, we can break the outer loop too
+                            driver.FindElement(By.Id("txtOtp")).Click();
+                        }
+                        continue;
+                    }
+                    catch (Exception)
+                    {
+                        // No alert present, ignore and continue checking
+                    }
                     // 1. Wait for elements and fill credentials
                     waitForElement.Until(ExpectedConditions.ElementIsVisible(By.Id("txtUserName")));
 
@@ -2226,10 +2275,14 @@ namespace Office_Manager
                             alert.Accept(); // Handle the alert
                             outcomeDetermined = true; // Break inner loop to retry credentials
 
-                            driver.FindElement(By.Id("txtOtp")).Click();
+                            if(driver.FindElements(By.Id("txtOtp")).Count > 0)
+                            {
+                                driver.FindElement(By.Id("txtOtp")).Click();
+                                isOtpReached = true; // If OTP field is present after accepting alert, we can break the outer loop too
+                            }
                             continue;
                         }
-                        catch (NoAlertPresentException)
+                        catch (Exception)
                         {
                             // No alert present, ignore and continue checking
                         }

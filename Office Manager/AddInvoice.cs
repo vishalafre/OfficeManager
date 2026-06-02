@@ -1520,7 +1520,7 @@ namespace Office_Manager
                 string cWd = "0";
 
                 SqlCommand cmdBI = new SqlCommand("insert into BILL_ITEM values(@FIRM, " +
-                    "@BILL_ID, @ROLL_NO, @ITEM, @RATE, @QTY, @MTR, @AMOUNT, " + cWt + ", " + cWd + ", @FY, @ORDER_ID, " + g + ")", con);
+                    "@BILL_ID, @ROLL_NO, @ITEM, @RATE, @QTY, @MTR, @AMOUNT, " + cWt + ", " + cWd + ", @FY, @ORDER_ID, " + g + ", 0)", con);
 
                 string mItem = ((KeyValuePair<string, string>)cItem.SelectedItem).Key;
 
@@ -2500,7 +2500,7 @@ namespace Office_Manager
             String fromDt = "01-APR-" + year;
             String toDt = "31-MAR-" + (year + 1);
 
-            string query1 = "select top 1 b1.firm, b1.bill_id, min(bi1.roll_no) roll_no1, max(cast(roll_no as int)) roll_no2 from bill_item bi1, bill b1 where bi1.bill_id = b1.bill_id and b1.bill_id in (select bill_id from (select b.firm, max(b.bill_id) bill_id from bill_item bi, bill b where b.bill_id = bi.bill_id and BILL_DT BETWEEN @FROM_DT AND @TO_DT and qty = 1 and ISNUMERIC(roll_no) = 1 group by b.firm) t) group by b1.firm, b1.bill_id order by 4 desc";
+            string query1 = "select top 1 b1.firm, b1.bill_id, min(bi1.roll_no) roll_no1, max(cast(roll_no as int)) roll_no2 from bill_item bi1, bill b1 where bi1.bill_id = b1.bill_id and b1.bill_id in (select bill_id from (select b.firm, max(b.bill_id) bill_id from bill_item bi, bill b where b.bill_id = bi.bill_id and BILL_DT BETWEEN @FROM_DT AND @TO_DT and qty = 1 and ISNUMERIC(roll_no) = 1 and PREV_YEAR = 0 group by b.firm) t) group by b1.firm, b1.bill_id order by 4 desc";
             SqlCommand oCmd1 = new SqlCommand(query1, con1);
             oCmd1.Parameters.AddWithValue("@FROM_DT", fromDt);
             oCmd1.Parameters.AddWithValue("@TO_DT", toDt);
@@ -2519,7 +2519,7 @@ namespace Office_Manager
 
             output += "<-->";
 
-            query1 = "select top 1 b1.firm, b1.bill_id, min(bi1.roll_no) roll_no1, max(roll_no) roll_no2 from bill_item bi1, bill b1 where bi1.bill_id = b1.bill_id and roll_no in (select roll_no from (select cast(max(cast(roll_no as int)) as varchar) roll_no from bill_item bi, bill b where b.bill_id = bi.bill_id and BILL_DT BETWEEN @FROM_DT AND @TO_DT and qty > 1 and ISNUMERIC(roll_no) = 1) t) group by b1.firm, b1.bill_id order by 4 desc";
+            query1 = "select top 1 b1.firm, b1.bill_id, min(bi1.roll_no) roll_no1, max(roll_no) roll_no2 from bill_item bi1, bill b1 where bi1.bill_id = b1.bill_id and roll_no in (select roll_no from (select cast(max(cast(roll_no as int)) as varchar) roll_no from bill_item bi, bill b where b.bill_id = bi.bill_id and BILL_DT BETWEEN @FROM_DT AND @TO_DT and qty > 1 and PREV_YEAR = 0 and ISNUMERIC(roll_no) = 1) t) group by b1.firm, b1.bill_id order by 4 desc";
             oCmd1 = new SqlCommand(query1, con1);
             oCmd1.Parameters.AddWithValue("@FROM_DT", fromDt);
             oCmd1.Parameters.AddWithValue("@TO_DT", toDt);
