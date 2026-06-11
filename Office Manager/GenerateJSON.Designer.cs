@@ -32,12 +32,13 @@
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.button1 = new System.Windows.Forms.Button();
+            this.btnCreateEwb = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // textBox1
             // 
             this.textBox1.Location = new System.Drawing.Point(225, 54);
-            this.textBox1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.textBox1.Margin = new System.Windows.Forms.Padding(4);
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(497, 22);
             this.textBox1.TabIndex = 0;
@@ -48,7 +49,7 @@
             this.label1.Location = new System.Drawing.Point(165, 58);
             this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(50, 17);
+            this.label1.Size = new System.Drawing.Size(48, 16);
             this.label1.TabIndex = 1;
             this.label1.Text = "Bill IDs";
             // 
@@ -59,14 +60,14 @@
             this.label2.Location = new System.Drawing.Point(221, 82);
             this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(226, 17);
+            this.label2.Size = new System.Drawing.Size(201, 16);
             this.label2.TabIndex = 2;
             this.label2.Text = "E.g. B100:B105, B110, B112:B120";
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(347, 177);
-            this.button1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button1.Location = new System.Drawing.Point(269, 149);
+            this.button1.Margin = new System.Windows.Forms.Padding(4);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(153, 44);
             this.button1.TabIndex = 3;
@@ -74,16 +75,30 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
+            // btnCreateEwb
+            // 
+            this.btnCreateEwb.Enabled = false;
+            this.btnCreateEwb.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnCreateEwb.Location = new System.Drawing.Point(430, 149);
+            this.btnCreateEwb.Margin = new System.Windows.Forms.Padding(4);
+            this.btnCreateEwb.Name = "btnCreateEwb";
+            this.btnCreateEwb.Size = new System.Drawing.Size(153, 44);
+            this.btnCreateEwb.TabIndex = 4;
+            this.btnCreateEwb.Text = "Create EWB";
+            this.btnCreateEwb.UseVisualStyleBackColor = true;
+            this.btnCreateEwb.Click += new System.EventHandler(this.btnCreateEwb_Click);
+            // 
             // GenerateJSON
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(860, 263);
+            this.Controls.Add(this.btnCreateEwb);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.textBox1);
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "GenerateJSON";
             this.Text = "GenerateJSON";
             this.Load += new System.EventHandler(this.GenerateJSON_Load);
@@ -98,5 +113,6 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button btnCreateEwb;
     }
 }

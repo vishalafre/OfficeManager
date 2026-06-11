@@ -351,7 +351,7 @@ namespace Office_Manager
                         {
                             transporterId = firstRow["TRANS_GSTIN"].ToString(),
                             transporterName = firstRow["TRANS_NAME"].ToString(),
-                            transporterMode = (string)null,
+                            transportMode = (string)null,
                             distance = firstRow["DISTANCE"] == DBNull.Value ? 0 : Convert.ToInt32(firstRow["DISTANCE"]),
                             transporterDocumentNumber = (string)null,
                             transporterDocumentDate = (string)null,
@@ -371,7 +371,6 @@ namespace Office_Manager
                 output = JsonSerializer.Serialize(billsList, options);
 
                 System.IO.File.WriteAllText(@"C:\Invoices\eInvoice.json", output);
-                Close();
 
                 return "OK";
             }
@@ -1181,10 +1180,13 @@ namespace Office_Manager
                     summaryMessage.AppendLine($"{invNo} : {statusMessage}");
                 }
 
-                // Show the summary MessageBox if AT LEAST ONE error was found
-                if (hasAnyErrors)
+                string finalOutputString = finalResponses.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
+
+                // Save to output file (compatible with older .NET)
+                string outputPath = @"C:\Invoices\eInvoice_Responses.json";
+                using (StreamWriter writer = new StreamWriter(outputPath))
                 {
-                    MessageBox.Show(summaryMessage.ToString(), "Invoice Generation Summary", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    await writer.WriteAsync(finalOutputString);
                 }
 
                 // ==========================================
@@ -1196,40 +1198,34 @@ namespace Office_Manager
                     con.Open();
                     try
                     {
-                        string updateQuery = "UPDATE BILL SET EWAYBILL_NO = @EWAYBILL_NO, IRN = @IRN, SIGNED_INVOICE = @SIGNED_INVOICE WHERE bill_id = @bill_id AND firm = @firm";
+                        string updateQuery = "UPDATE BILL SET EWAYBILL_NO = @EWAYBILL_NO, EWB_TIME = @EWB_TIME, IRN = @IRN, SIGNED_INVOICE = @SIGNED_INVOICE WHERE bill_id = @bill_id AND firm = @firm";
 
                         using (SqlCommand cmd = new SqlCommand(updateQuery, con))
                         {
-                            // Best Practice: Define parameters once outside the loop to improve performance
-                            cmd.Parameters.Add("@EWAYBILL_NO", System.Data.SqlDbType.VarChar);
-                            cmd.Parameters.Add("@IRN", System.Data.SqlDbType.VarChar);
-                            cmd.Parameters.Add("@SIGNED_INVOICE", System.Data.SqlDbType.VarChar); // Change to VarChar(MAX) if necessary
-                            cmd.Parameters.Add("@bill_id", System.Data.SqlDbType.VarChar);
-                            cmd.Parameters.Add("@firm", System.Data.SqlDbType.VarChar);
-
                             foreach (int i in successfulIndices)
                             {
                                 var response = finalResponses[i];
-                                var resultNode = response["result"];
 
-                                if (resultNode != null)
+                                if (response != null)
                                 {
-                                    // Extract data from the successful API response
-                                    string irn = resultNode["Irn"]?.ToString();
-                                    string ewayBillNo = resultNode["EwbNo"]?.ToString();
-                                    string signedQRCode = resultNode["SignedQRCode"]?.ToString(); // Taking SignedQRCode as per your snippet
+                                    string irn = response["irn"]?.ToString();
+                                    string ewayBillNo = response["ewbNumber"]?.ToString();
+                                    string signedQRCode = response["signedQRCode"]?.ToString();
+                                    string billId = sourceArray[i]?["documentDetails"]?["number"]?.ToString() ?? "";
 
-                                    // Map bill_id using the original array
-                                    string billId = sourceArray[i]?["DocDtls"]?["No"]?.ToString() ?? "";
-
-                                    // Assign values to parameters (handle potential nulls like EwbNo gracefully)
-                                    cmd.Parameters["@EWAYBILL_NO"].Value = string.IsNullOrEmpty(ewayBillNo) ? DBNull.Value : (object)ewayBillNo;
-                                    cmd.Parameters["@IRN"].Value = string.IsNullOrEmpty(irn) ? DBNull.Value : (object)irn;
-                                    cmd.Parameters["@SIGNED_INVOICE"].Value = string.IsNullOrEmpty(signedQRCode) ? DBNull.Value : (object)signedQRCode;
-                                    cmd.Parameters["@bill_id"].Value = billId;
-                                    cmd.Parameters["@firm"].Value = firm; // Assuming targetCompany is available in your form's scope
+                                    // The shortcut: AddWithValue infers the data type from the value you pass
+                                    cmd.Parameters.AddWithValue("@EWAYBILL_NO", string.IsNullOrEmpty(ewayBillNo) ? DBNull.Value : (object)ewayBillNo);
+                                    cmd.Parameters.AddWithValue("@IRN", string.IsNullOrEmpty(irn) ? DBNull.Value : (object)irn);
+                                    cmd.Parameters.AddWithValue("@SIGNED_INVOICE", string.IsNullOrEmpty(signedQRCode) ? DBNull.Value : (object)signedQRCode);
+                                    cmd.Parameters.AddWithValue("@bill_id", billId);
+                                    cmd.Parameters.AddWithValue("@firm", firm);
+                                    cmd.Parameters.AddWithValue("@EWB_TIME", DateTime.Now);
 
                                     cmd.ExecuteNonQuery();
+
+                                    // CRITICAL: You must clear the parameters at the end of the loop 
+                                    // if you use AddWithValue inside a loop, otherwise it will crash on the next iteration
+                                    cmd.Parameters.Clear();
                                 }
                             }
                         }
@@ -1244,23 +1240,9 @@ namespace Office_Manager
                     }
                 }
 
+                MessageBox.Show(summaryMessage.ToString(), "Invoice Generation Summary", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-
-
-
-
-
-                /*
-                string finalOutputString = finalResponses.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
-
-                // Save to output file (compatible with older .NET)
-                string outputPath = @"C:\Invoices\eInvoice_Responses.json";
-                using (StreamWriter writer = new StreamWriter(outputPath))
-                {
-                    await writer.WriteAsync(finalOutputString);
-                }
-
-                MessageBox.Show($"Processing complete! {finalResponses.Count} invoices processed.\nSaved to: {outputPath}", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);*/
+                //MessageBox.Show($"Processing complete! {finalResponses.Count} invoices processed.\nSaved to: {outputPath}", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {

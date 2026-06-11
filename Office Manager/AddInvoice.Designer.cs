@@ -30,6 +30,9 @@
         {
             this.label1 = new System.Windows.Forms.Label();
             this.addInv = new System.Windows.Forms.Panel();
+            this.btnCancelIrn = new System.Windows.Forms.Button();
+            this.btnCancelEwb = new System.Windows.Forms.Button();
+            this.qrBtn = new System.Windows.Forms.Button();
             this.irn = new System.Windows.Forms.TextBox();
             this.label10 = new System.Windows.Forms.Label();
             this.eWayBill = new System.Windows.Forms.TextBox();
@@ -108,7 +111,6 @@
             this.checkBox4 = new System.Windows.Forms.CheckBox();
             this.checkBox5 = new System.Windows.Forms.CheckBox();
             this.button1 = new System.Windows.Forms.Button();
-            this.qrBtn = new System.Windows.Forms.Button();
             this.addInv.SuspendLayout();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -129,6 +131,8 @@
             // addInv
             // 
             this.addInv.BackColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.addInv.Controls.Add(this.btnCancelIrn);
+            this.addInv.Controls.Add(this.btnCancelEwb);
             this.addInv.Controls.Add(this.qrBtn);
             this.addInv.Controls.Add(this.irn);
             this.addInv.Controls.Add(this.label10);
@@ -175,15 +179,57 @@
             this.addInv.Controls.Add(this.label3);
             this.addInv.Controls.Add(this.label2);
             this.addInv.Location = new System.Drawing.Point(241, 94);
-            this.addInv.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.addInv.Margin = new System.Windows.Forms.Padding(4);
             this.addInv.Name = "addInv";
             this.addInv.Size = new System.Drawing.Size(1485, 724);
             this.addInv.TabIndex = 5;
             // 
+            // btnCancelIrn
+            // 
+            this.btnCancelIrn.BackColor = System.Drawing.Color.IndianRed;
+            this.btnCancelIrn.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnCancelIrn.ForeColor = System.Drawing.Color.White;
+            this.btnCancelIrn.Location = new System.Drawing.Point(919, 676);
+            this.btnCancelIrn.Margin = new System.Windows.Forms.Padding(4);
+            this.btnCancelIrn.Name = "btnCancelIrn";
+            this.btnCancelIrn.Size = new System.Drawing.Size(154, 34);
+            this.btnCancelIrn.TabIndex = 67;
+            this.btnCancelIrn.Text = "Cancel IRN";
+            this.btnCancelIrn.UseVisualStyleBackColor = false;
+            this.btnCancelIrn.Click += new System.EventHandler(this.btnCancelIrn_Click);
+            // 
+            // btnCancelEwb
+            // 
+            this.btnCancelEwb.BackColor = System.Drawing.Color.IndianRed;
+            this.btnCancelEwb.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnCancelEwb.ForeColor = System.Drawing.Color.White;
+            this.btnCancelEwb.Location = new System.Drawing.Point(758, 676);
+            this.btnCancelEwb.Margin = new System.Windows.Forms.Padding(4);
+            this.btnCancelEwb.Name = "btnCancelEwb";
+            this.btnCancelEwb.Size = new System.Drawing.Size(154, 34);
+            this.btnCancelEwb.TabIndex = 66;
+            this.btnCancelEwb.Text = "Cancel EWB";
+            this.btnCancelEwb.UseVisualStyleBackColor = false;
+            this.btnCancelEwb.Click += new System.EventHandler(this.btnCancelEwb_Click);
+            // 
+            // qrBtn
+            // 
+            this.qrBtn.BackColor = System.Drawing.Color.IndianRed;
+            this.qrBtn.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.qrBtn.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.qrBtn.Location = new System.Drawing.Point(1331, 254);
+            this.qrBtn.Margin = new System.Windows.Forms.Padding(4);
+            this.qrBtn.Name = "qrBtn";
+            this.qrBtn.Size = new System.Drawing.Size(43, 28);
+            this.qrBtn.TabIndex = 65;
+            this.qrBtn.Text = "QR";
+            this.qrBtn.UseVisualStyleBackColor = false;
+            this.qrBtn.Click += new System.EventHandler(this.qrBtn_Click);
+            // 
             // irn
             // 
             this.irn.Location = new System.Drawing.Point(989, 257);
-            this.irn.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.irn.Margin = new System.Windows.Forms.Padding(4);
             this.irn.Name = "irn";
             this.irn.Size = new System.Drawing.Size(334, 22);
             this.irn.TabIndex = 63;
@@ -202,7 +248,7 @@
             // eWayBill
             // 
             this.eWayBill.Location = new System.Drawing.Point(1253, 14);
-            this.eWayBill.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.eWayBill.Margin = new System.Windows.Forms.Padding(4);
             this.eWayBill.Name = "eWayBill";
             this.eWayBill.Size = new System.Drawing.Size(215, 22);
             this.eWayBill.TabIndex = 62;
@@ -224,7 +270,7 @@
             this.agt.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.agt.FormattingEnabled = true;
             this.agt.Location = new System.Drawing.Point(989, 204);
-            this.agt.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.agt.Margin = new System.Windows.Forms.Padding(4);
             this.agt.Name = "agt";
             this.agt.Size = new System.Drawing.Size(385, 24);
             this.agt.TabIndex = 5;
@@ -232,7 +278,7 @@
             // lrNo
             // 
             this.lrNo.Location = new System.Drawing.Point(529, 254);
-            this.lrNo.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.lrNo.Margin = new System.Windows.Forms.Padding(4);
             this.lrNo.Name = "lrNo";
             this.lrNo.Size = new System.Drawing.Size(131, 22);
             this.lrNo.TabIndex = 7;
@@ -250,8 +296,8 @@
             // 
             // deleteBtn
             // 
-            this.deleteBtn.Location = new System.Drawing.Point(920, 683);
-            this.deleteBtn.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.deleteBtn.Location = new System.Drawing.Point(600, 682);
+            this.deleteBtn.Margin = new System.Windows.Forms.Padding(4);
             this.deleteBtn.Name = "deleteBtn";
             this.deleteBtn.Size = new System.Drawing.Size(100, 28);
             this.deleteBtn.TabIndex = 24;
@@ -262,8 +308,8 @@
             // 
             // updateBtn
             // 
-            this.updateBtn.Location = new System.Drawing.Point(657, 683);
-            this.updateBtn.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.updateBtn.Location = new System.Drawing.Point(337, 682);
+            this.updateBtn.Margin = new System.Windows.Forms.Padding(4);
             this.updateBtn.Name = "updateBtn";
             this.updateBtn.Size = new System.Drawing.Size(100, 28);
             this.updateBtn.TabIndex = 22;
@@ -275,7 +321,7 @@
             // lotNo
             // 
             this.lotNo.Location = new System.Drawing.Point(219, 254);
-            this.lotNo.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.lotNo.Margin = new System.Windows.Forms.Padding(4);
             this.lotNo.Name = "lotNo";
             this.lotNo.Size = new System.Drawing.Size(153, 22);
             this.lotNo.TabIndex = 6;
@@ -324,7 +370,7 @@
             this.panel1.Controls.Add(this.rollNo);
             this.panel1.Controls.Add(this.rollNoLbl);
             this.panel1.Location = new System.Drawing.Point(21, 345);
-            this.panel1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.panel1.Margin = new System.Windows.Forms.Padding(4);
             this.panel1.Name = "panel1";
             this.panel1.Padding = new System.Windows.Forms.Padding(0, 0, 20, 0);
             this.panel1.Size = new System.Drawing.Size(1440, 219);
@@ -354,7 +400,7 @@
             // width
             // 
             this.width.Location = new System.Drawing.Point(1619, 14);
-            this.width.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.width.Margin = new System.Windows.Forms.Padding(4);
             this.width.Name = "width";
             this.width.Size = new System.Drawing.Size(83, 22);
             this.width.TabIndex = 16;
@@ -385,7 +431,7 @@
             // weight
             // 
             this.weight.Location = new System.Drawing.Point(1468, 14);
-            this.weight.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.weight.Margin = new System.Windows.Forms.Padding(4);
             this.weight.Name = "weight";
             this.weight.Size = new System.Drawing.Size(83, 22);
             this.weight.TabIndex = 15;
@@ -406,7 +452,7 @@
             this.item.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.item.FormattingEnabled = true;
             this.item.Location = new System.Drawing.Point(367, 14);
-            this.item.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.item.Margin = new System.Windows.Forms.Padding(4);
             this.item.Name = "item";
             this.item.Size = new System.Drawing.Size(216, 24);
             this.item.TabIndex = 10;
@@ -416,7 +462,7 @@
             // 
             this.addRow.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(224)))), ((int)(((byte)(224)))), ((int)(((byte)(224)))));
             this.addRow.Location = new System.Drawing.Point(52, 14);
-            this.addRow.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.addRow.Margin = new System.Windows.Forms.Padding(4);
             this.addRow.Name = "addRow";
             this.addRow.Size = new System.Drawing.Size(29, 28);
             this.addRow.TabIndex = 100;
@@ -428,7 +474,7 @@
             // rate
             // 
             this.rate.Location = new System.Drawing.Point(648, 14);
-            this.rate.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.rate.Margin = new System.Windows.Forms.Padding(4);
             this.rate.Name = "rate";
             this.rate.Size = new System.Drawing.Size(83, 22);
             this.rate.TabIndex = 11;
@@ -447,7 +493,7 @@
             // mtr
             // 
             this.mtr.Location = new System.Drawing.Point(1016, 14);
-            this.mtr.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.mtr.Margin = new System.Windows.Forms.Padding(4);
             this.mtr.Name = "mtr";
             this.mtr.Size = new System.Drawing.Size(95, 22);
             this.mtr.TabIndex = 13;
@@ -467,7 +513,7 @@
             // qty
             // 
             this.qty.Location = new System.Drawing.Point(833, 14);
-            this.qty.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.qty.Margin = new System.Windows.Forms.Padding(4);
             this.qty.Name = "qty";
             this.qty.Size = new System.Drawing.Size(101, 22);
             this.qty.TabIndex = 12;
@@ -497,7 +543,7 @@
             // rollNo
             // 
             this.rollNo.Location = new System.Drawing.Point(168, 14);
-            this.rollNo.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.rollNo.Margin = new System.Windows.Forms.Padding(4);
             this.rollNo.Name = "rollNo";
             this.rollNo.Size = new System.Drawing.Size(139, 22);
             this.rollNo.TabIndex = 9;
@@ -564,7 +610,7 @@
             // freight
             // 
             this.freight.Location = new System.Drawing.Point(1099, 626);
-            this.freight.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.freight.Margin = new System.Windows.Forms.Padding(4);
             this.freight.Name = "freight";
             this.freight.Size = new System.Drawing.Size(93, 22);
             this.freight.TabIndex = 21;
@@ -584,7 +630,7 @@
             // disount
             // 
             this.disount.Location = new System.Drawing.Point(884, 629);
-            this.disount.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.disount.Margin = new System.Windows.Forms.Padding(4);
             this.disount.Name = "disount";
             this.disount.Size = new System.Drawing.Size(64, 22);
             this.disount.TabIndex = 20;
@@ -604,7 +650,7 @@
             // igst
             // 
             this.igst.Location = new System.Drawing.Point(595, 630);
-            this.igst.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.igst.Margin = new System.Windows.Forms.Padding(4);
             this.igst.Name = "igst";
             this.igst.Size = new System.Drawing.Size(112, 22);
             this.igst.TabIndex = 19;
@@ -624,7 +670,7 @@
             // sgst
             // 
             this.sgst.Location = new System.Drawing.Point(356, 630);
-            this.sgst.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.sgst.Margin = new System.Windows.Forms.Padding(4);
             this.sgst.Name = "sgst";
             this.sgst.Size = new System.Drawing.Size(101, 22);
             this.sgst.TabIndex = 18;
@@ -644,7 +690,7 @@
             // cgst
             // 
             this.cgst.Location = new System.Drawing.Point(109, 633);
-            this.cgst.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.cgst.Margin = new System.Windows.Forms.Padding(4);
             this.cgst.Name = "cgst";
             this.cgst.Size = new System.Drawing.Size(108, 22);
             this.cgst.TabIndex = 17;
@@ -700,7 +746,7 @@
             // invoiceDt
             // 
             this.invoiceDt.Location = new System.Drawing.Point(219, 103);
-            this.invoiceDt.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.invoiceDt.Margin = new System.Windows.Forms.Padding(4);
             this.invoiceDt.Name = "invoiceDt";
             this.invoiceDt.Size = new System.Drawing.Size(265, 22);
             this.invoiceDt.TabIndex = 21;
@@ -709,7 +755,7 @@
             // dueDtLmt
             // 
             this.dueDtLmt.Location = new System.Drawing.Point(989, 107);
-            this.dueDtLmt.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.dueDtLmt.Margin = new System.Windows.Forms.Padding(4);
             this.dueDtLmt.Name = "dueDtLmt";
             this.dueDtLmt.Size = new System.Drawing.Size(84, 22);
             this.dueDtLmt.TabIndex = 1;
@@ -742,7 +788,7 @@
             this.transporter.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.transporter.FormattingEnabled = true;
             this.transporter.Location = new System.Drawing.Point(219, 202);
-            this.transporter.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.transporter.Margin = new System.Windows.Forms.Padding(4);
             this.transporter.Name = "transporter";
             this.transporter.Size = new System.Drawing.Size(444, 24);
             this.transporter.TabIndex = 4;
@@ -752,7 +798,7 @@
             this.shipTo.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.shipTo.FormattingEnabled = true;
             this.shipTo.Location = new System.Drawing.Point(989, 154);
-            this.shipTo.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.shipTo.Margin = new System.Windows.Forms.Padding(4);
             this.shipTo.Name = "shipTo";
             this.shipTo.Size = new System.Drawing.Size(385, 24);
             this.shipTo.TabIndex = 3;
@@ -762,7 +808,7 @@
             this.billTo.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.billTo.FormattingEnabled = true;
             this.billTo.Location = new System.Drawing.Point(219, 154);
-            this.billTo.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.billTo.Margin = new System.Windows.Forms.Padding(4);
             this.billTo.Name = "billTo";
             this.billTo.Size = new System.Drawing.Size(444, 24);
             this.billTo.TabIndex = 2;
@@ -803,8 +849,8 @@
             // 
             // button6
             // 
-            this.button6.Location = new System.Drawing.Point(792, 683);
-            this.button6.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button6.Location = new System.Drawing.Point(472, 682);
+            this.button6.Margin = new System.Windows.Forms.Padding(4);
             this.button6.Name = "button6";
             this.button6.Size = new System.Drawing.Size(100, 28);
             this.button6.TabIndex = 23;
@@ -848,7 +894,7 @@
             // button7
             // 
             this.button7.Location = new System.Drawing.Point(1572, 48);
-            this.button7.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button7.Margin = new System.Windows.Forms.Padding(4);
             this.button7.Name = "button7";
             this.button7.Size = new System.Drawing.Size(155, 38);
             this.button7.TabIndex = 7;
@@ -866,7 +912,7 @@
             // button10
             // 
             this.button10.Location = new System.Drawing.Point(16, 326);
-            this.button10.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button10.Margin = new System.Windows.Forms.Padding(4);
             this.button10.Name = "button10";
             this.button10.Size = new System.Drawing.Size(172, 54);
             this.button10.TabIndex = 45;
@@ -877,7 +923,7 @@
             // button8
             // 
             this.button8.Location = new System.Drawing.Point(16, 15);
-            this.button8.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button8.Margin = new System.Windows.Forms.Padding(4);
             this.button8.Name = "button8";
             this.button8.Size = new System.Drawing.Size(100, 28);
             this.button8.TabIndex = 44;
@@ -888,7 +934,7 @@
             // button5
             // 
             this.button5.Location = new System.Drawing.Point(15, 530);
-            this.button5.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button5.Margin = new System.Windows.Forms.Padding(4);
             this.button5.Name = "button5";
             this.button5.Size = new System.Drawing.Size(172, 54);
             this.button5.TabIndex = 43;
@@ -899,7 +945,7 @@
             // button4
             // 
             this.button4.Location = new System.Drawing.Point(15, 430);
-            this.button4.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button4.Margin = new System.Windows.Forms.Padding(4);
             this.button4.Name = "button4";
             this.button4.Size = new System.Drawing.Size(172, 54);
             this.button4.TabIndex = 42;
@@ -910,7 +956,7 @@
             // button3
             // 
             this.button3.Location = new System.Drawing.Point(16, 220);
-            this.button3.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button3.Margin = new System.Windows.Forms.Padding(4);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(172, 54);
             this.button3.TabIndex = 41;
@@ -921,7 +967,7 @@
             // button9
             // 
             this.button9.Location = new System.Drawing.Point(15, 118);
-            this.button9.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button9.Margin = new System.Windows.Forms.Padding(4);
             this.button9.Name = "button9";
             this.button9.Size = new System.Drawing.Size(172, 54);
             this.button9.TabIndex = 39;
@@ -933,7 +979,7 @@
             // 
             this.pictureBox1.Image = global::Office_Manager.Properties.Resources.home;
             this.pictureBox1.Location = new System.Drawing.Point(241, 4);
-            this.pictureBox1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.pictureBox1.Margin = new System.Windows.Forms.Padding(4);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(95, 82);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -958,7 +1004,7 @@
             this.checkBox1.AutoSize = true;
             this.checkBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.checkBox1.Location = new System.Drawing.Point(547, 68);
-            this.checkBox1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.checkBox1.Margin = new System.Windows.Forms.Padding(4);
             this.checkBox1.Name = "checkBox1";
             this.checkBox1.Size = new System.Drawing.Size(124, 22);
             this.checkBox1.TabIndex = 59;
@@ -970,7 +1016,7 @@
             this.checkBox2.AutoSize = true;
             this.checkBox2.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.checkBox2.Location = new System.Drawing.Point(696, 68);
-            this.checkBox2.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.checkBox2.Margin = new System.Windows.Forms.Padding(4);
             this.checkBox2.Name = "checkBox2";
             this.checkBox2.Size = new System.Drawing.Size(150, 22);
             this.checkBox2.TabIndex = 60;
@@ -982,7 +1028,7 @@
             this.checkBox3.AutoSize = true;
             this.checkBox3.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.checkBox3.Location = new System.Drawing.Point(876, 68);
-            this.checkBox3.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.checkBox3.Margin = new System.Windows.Forms.Padding(4);
             this.checkBox3.Name = "checkBox3";
             this.checkBox3.Size = new System.Drawing.Size(191, 22);
             this.checkBox3.TabIndex = 61;
@@ -994,7 +1040,7 @@
             this.checkBox4.AutoSize = true;
             this.checkBox4.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.checkBox4.Location = new System.Drawing.Point(1088, 68);
-            this.checkBox4.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.checkBox4.Margin = new System.Windows.Forms.Padding(4);
             this.checkBox4.Name = "checkBox4";
             this.checkBox4.Size = new System.Drawing.Size(100, 22);
             this.checkBox4.TabIndex = 62;
@@ -1008,7 +1054,7 @@
             this.checkBox5.CheckState = System.Windows.Forms.CheckState.Checked;
             this.checkBox5.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.checkBox5.Location = new System.Drawing.Point(1207, 68);
-            this.checkBox5.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.checkBox5.Margin = new System.Windows.Forms.Padding(4);
             this.checkBox5.Name = "checkBox5";
             this.checkBox5.Size = new System.Drawing.Size(115, 22);
             this.checkBox5.TabIndex = 63;
@@ -1021,27 +1067,13 @@
             this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.button1.ForeColor = System.Drawing.Color.White;
             this.button1.Location = new System.Drawing.Point(13, 620);
-            this.button1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button1.Margin = new System.Windows.Forms.Padding(4);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(176, 71);
             this.button1.TabIndex = 64;
             this.button1.Text = "Order Management";
             this.button1.UseVisualStyleBackColor = false;
             this.button1.Click += new System.EventHandler(this.button1_Click);
-            // 
-            // qrBtn
-            // 
-            this.qrBtn.BackColor = System.Drawing.Color.IndianRed;
-            this.qrBtn.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.qrBtn.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.qrBtn.Location = new System.Drawing.Point(1331, 254);
-            this.qrBtn.Margin = new System.Windows.Forms.Padding(4);
-            this.qrBtn.Name = "qrBtn";
-            this.qrBtn.Size = new System.Drawing.Size(43, 28);
-            this.qrBtn.TabIndex = 65;
-            this.qrBtn.Text = "QR";
-            this.qrBtn.UseVisualStyleBackColor = false;
-            this.qrBtn.Click += new System.EventHandler(this.qrBtn_Click);
             // 
             // AddInvoice
             // 
@@ -1067,7 +1099,7 @@
             this.Controls.Add(this.addInv);
             this.Controls.Add(this.label15);
             this.Controls.Add(this.label1);
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "AddInvoice";
             this.Text = "AddInvoice";
             this.Load += new System.EventHandler(this.AddInvoice_Load);
@@ -1164,5 +1196,7 @@
         private System.Windows.Forms.TextBox irn;
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.Button qrBtn;
+        private System.Windows.Forms.Button btnCancelIrn;
+        private System.Windows.Forms.Button btnCancelEwb;
     }
 }

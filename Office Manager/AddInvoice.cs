@@ -1,27 +1,32 @@
-﻿using NPOI.HSSF.UserModel;
+﻿using Newtonsoft.Json;
+using NPOI.HSSF.UserModel;
+using NPOI.SS.Formula.Functions;
 using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
+using Office_Manager;
+using QRCoder;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
+using System.Data.SqlTypes;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Text.RegularExpressions;
-using Office_Manager;
-using System.Net;
-using Newtonsoft.Json;
-using QRCoder;
-using NPOI.SS.Formula.Functions;
-using System.Data.SqlTypes;
-using System.Drawing.Imaging;
-using System.Drawing.Drawing2D;
+using static Office_Manager.GenerateEInvoice;
 
 namespace Office_Manager
 {
@@ -64,6 +69,9 @@ namespace Office_Manager
         int txnFlag;        //1: update     //2: save
         string signedInvoice = "";
         private byte[] qrBytes;
+
+        private static readonly HttpClient _httpClient = new HttpClient();
+        private DateTime ewbTime;
 
         public AddInvoice(String cName, byte[] logoPath)
         {
@@ -1440,7 +1448,7 @@ namespace Office_Manager
                 "@BILL_ID, @BILL_DT, " + dueDateTxt + ", @BILL_TO, @SHIP_TO, @TRANSPORTER, " +
                 "@CGST, @SGST, @IGST, @DISCOUNT, @FREIGHT, " +
                 "@AGENT, @LOT_NO, @LR_NO, @EWAYBILL_NO, @CGST_AMT, @SGST_AMT, @IGST_AMT, @NET_AMT, @BILL_AMT, " +
-                "@ROUNDING_PREF, @IRN, @SIGN)", con);
+                "@ROUNDING_PREF, @IRN, @SIGN, @EWB_TIME)", con);
 
             string roundingPref = ((checkBox1.Checked) ? "1" : "0") +
                 ((checkBox2.Checked) ? "1" : "0") +
@@ -1473,6 +1481,14 @@ namespace Office_Manager
             cmd.Parameters.AddWithValue("@ROUNDING_PREF", roundingPref);
             cmd.Parameters.AddWithValue("@IRN", irn.Text);
             cmd.Parameters.AddWithValue("@SIGN", signedInvoice);
+            if(ewbTime != DateTime.MinValue)
+            {
+                cmd.Parameters.AddWithValue("@EWB_TIME", ewbTime);
+            } 
+            else
+            {
+                cmd.Parameters.AddWithValue("@EWB_TIME", DBNull.Value);
+            }
             int i = cmd.ExecuteNonQuery();
 
             //Dictionary<double, double> rateMtr = new Dictionary<double, double>();
@@ -1651,7 +1667,7 @@ namespace Office_Manager
                 "@BILL_ID, @BILL_DT, " + dueDateTxt + ", @BILL_TO, @SHIP_TO, @TRANSPORTER, " +
                 "@CGST, @SGST, @IGST, @DISCOUNT, @FREIGHT, " +
                 "@AGENT, @LOT_NO, @LR_NO, @EWAYBILL_NO, @CGST_AMT, @SGST_AMT, @IGST_AMT, @NET_AMT, @BILL_AMT, " +
-                "@ROUNDING_PREF, NULL)", con);
+                "@ROUNDING_PREF, @EWB_TIME)", con);
 
             string roundingPref = ((checkBox1.Checked) ? "1" : "0") +
                 ((checkBox2.Checked) ? "1" : "0") +
@@ -1682,6 +1698,15 @@ namespace Office_Manager
             cmd.Parameters.AddWithValue("@NET_AMT", netAmt);
             cmd.Parameters.AddWithValue("@BILL_AMT", billAmt);
             cmd.Parameters.AddWithValue("@ROUNDING_PREF", roundingPref);
+
+            if (ewbTime != DateTime.MinValue)
+            {
+                cmd.Parameters.AddWithValue("@EWB_TIME", ewbTime);
+            }
+            else
+            {
+                cmd.Parameters.AddWithValue("@EWB_TIME", DBNull.Value);
+            }
             int i = cmd.ExecuteNonQuery();
 
             for (int j = 0; j < rollCount; j++)
@@ -1951,6 +1976,14 @@ namespace Office_Manager
                 {
                     if (oReader.Read())
                     {
+                        try
+                        {
+                            ewbTime = (DateTime)oReader["EWB_TIME"];
+                        }
+                        catch
+                        {
+
+                        }
                         invoiceNo.Text = invNoFromList.ToString();
                         irn.Text = oReader["IRN"].ToString();
                         CultureInfo ci = CultureInfo.InvariantCulture;
@@ -2149,6 +2182,16 @@ namespace Office_Manager
             else
             {
                 qrBtn.BackColor = Color.ForestGreen;
+            }
+
+            if(irn.Text.Equals(""))
+            {
+                btnCancelIrn.Enabled = false;
+            }
+
+            if(eWayBill.Text.Equals(""))
+            {
+                btnCancelEwb.Enabled = false;
             }
         }
 
@@ -3299,6 +3342,305 @@ namespace Office_Manager
         private void qrBtn_Click(object sender, EventArgs e)
         {
             new QR(signedInvoice, invoiceNo.Text, this).Show();
+        }
+
+        private async Task<AuthResult> AuthenticateAsync()
+        {
+            string authUrl = "https://login.onefinops.com/realms/onefinops/protocol/openid-connect/token";
+
+            using (var request = new HttpRequestMessage(HttpMethod.Post, authUrl))
+            {
+                // FIX: Add all parameters to the dictionary for the request body
+                var param = new Dictionary<string, string>
+                {
+                    { "grant_type", "client_credentials" },
+                    { "client_id", "ofin_live_ydkq2bwrn5rnxghdxh0zxa4294" },
+                    { "client_secret", "1l6S7dbovWw7qkqkt9YTD82pRu5fSIqn" }
+                };
+
+                // FormUrlEncodedContent automatically sets the 
+                // "Content-Type: application/x-www-form-urlencoded" header for you.
+                request.Content = new FormUrlEncodedContent(param);
+
+                var response = await _httpClient.SendAsync(request);
+                string responseBody = await response.Content.ReadAsStringAsync();
+
+                try
+                {
+                    JsonNode jsonResponse = JsonNode.Parse(responseBody);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        return new AuthResult
+                        {
+                            ErrorMessage = jsonResponse?["error_description"]?.ToString() ?? "Unknown error occurred."
+                        };
+                    }
+
+                    return new AuthResult
+                    {
+                        Token = jsonResponse?["access_token"]?.ToString()
+                    };
+                }
+                catch
+                {
+                    return new AuthResult
+                    {
+                        ErrorMessage = $"HTTP {(int)response.StatusCode} {response.ReasonPhrase}"
+                    };
+                }
+            }
+        }
+
+        private async void btnCancelEwb_Click(object sender, EventArgs e)
+        {
+            if(eWayBill.Text.Length < 12 || !long.TryParse(eWayBill.Text, out _))
+            {
+                MessageBox.Show("Please enter a valid E-waybill number.", "Invalid Input", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            btnCancelEwb.Text = "Cancelling...";
+            btnCancelEwb.Enabled = false;
+
+            try
+            {
+                // 2. Authenticate and get the token
+                AuthResult authResult = await AuthenticateAsync();
+                if (string.IsNullOrEmpty(authResult.Token))
+                {
+                    MessageBox.Show($"Authorization error: {authResult.ErrorMessage}", "Authentication Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    btnCancelEwb.Text = "Cancel EWB";
+                    btnCancelEwb.Enabled = true;
+                    return;
+                }
+
+                string accessToken = authResult.Token;
+
+                var result = await CancelEWaybillAsync(long.Parse(eWayBill.Text), accessToken);
+
+                if (result.IsSuccess)
+                {
+                    con.Open();
+                    try
+                    {
+                        string updateQuery = "UPDATE BILL SET EWAYBILL_NO = '', EWB_TIME = NULL WHERE bill_id = @bill_id AND firm = @firm";
+
+                        using (SqlCommand cmd = new SqlCommand(updateQuery, con))
+                        {
+                            // Best Practice: Define parameters once outside the loop to improve performance
+                            cmd.Parameters.AddWithValue("@bill_id", invoiceNo.Text);
+                            cmd.Parameters.AddWithValue("@firm", company);
+
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Database Update Error: {ex.Message}", "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    finally
+                    {
+                        eWayBill.Text = "";
+                        con.Close();
+                    }
+
+                    MessageBox.Show("E-waybill cancelled successfully!\n\nResponse: " + result.ResponseMessage,
+                        "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else
+                {
+                    MessageBox.Show("Failed to cancel E-waybill.\n\nDetails: " + result.ResponseMessage,
+                        "Cancellation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred: {ex.Message}", "Exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            btnCancelEwb.Text = "Cancel EWB";
+            btnCancelEwb.Enabled = true;
+        }
+
+        /// <summary>
+        /// Sends a POST request to cancel an E-waybill and returns the success status and raw response.
+        /// </summary>
+        private async Task<(bool IsSuccess, string ResponseMessage)> CancelEWaybillAsync(long ewbNumber, string accessToken)
+        {
+            string apiUrl = "https://api.in.onefinops.com/v1/ewaybills/cancel";
+
+            // 1. Construct the JSON payload dynamically using an anonymous object
+            var payload = new
+            {
+                ewbNumber = ewbNumber,
+                cancelReasonCode = 3,
+                cancelRemark = "NA"
+            };
+
+            string jsonPayload = System.Text.Json.JsonSerializer.Serialize(payload);
+
+            using (var request = new HttpRequestMessage(HttpMethod.Post, apiUrl))
+            {
+                // 2. Add the Bearer Token authorization header
+                request.Headers.Add("Gstin", "23ABTPA4978M1Z2");
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+                // 3. Attach the JSON body
+                request.Content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+                try
+                {
+                    // 4. Send the request
+                    var response = await _httpClient.SendAsync(request);
+                    string responseBody = await response.Content.ReadAsStringAsync();
+
+                    var jsonResponse = System.Text.Json.Nodes.JsonNode.Parse(responseBody);
+                    var statusNode = jsonResponse?["status"];
+                    var message = jsonResponse?["message"];
+
+                    // 5. Return success state along with the API's JSON response
+                    if (statusNode != null && statusNode.ToString() == "CNL")
+                    {
+                        return (true, responseBody);
+                    }
+                    else
+                    {
+                        // The HTTP request succeeded, but the cancellation was not applied
+                        if (message == null)
+                        {
+                            message = $"Response: {responseBody}";
+                        }
+                        return (false, $"Cancellation failed. {message}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return (false, $"Exception: {ex.Message}");
+                }
+            }
+        }
+
+        private async Task<(bool IsSuccess, string ResponseMessage)> CancelIRNAsync(string irn, string accessToken)
+        {
+            string apiUrl = "https://api.in.onefinops.com/v1/einvoices/cancel";
+
+            // 1. Construct the JSON payload dynamically using an anonymous object
+            var payload = new
+            {
+                irn = irn,
+                reasonCode = "2",
+                remarks = "NA"
+            };
+
+            string jsonPayload = System.Text.Json.JsonSerializer.Serialize(payload);
+
+            using (var request = new HttpRequestMessage(HttpMethod.Post, apiUrl))
+            {
+                // 2. Add the Bearer Token authorization header
+                request.Headers.Add("Gstin", "23ABTPA4978M1Z2");
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+                // 3. Attach the JSON body
+                request.Content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+                try
+                {
+                    // 4. Send the request
+                    var response = await _httpClient.SendAsync(request);
+                    string responseBody = await response.Content.ReadAsStringAsync();
+
+                    var jsonResponse = System.Text.Json.Nodes.JsonNode.Parse(responseBody);
+                    var statusNode = jsonResponse?["status"];
+                    var message = jsonResponse?["message"];
+
+                    // 5. Return success state along with the API's JSON response
+                    if (statusNode != null && statusNode.ToString() == "CNL")
+                    {
+                        return (true, responseBody);
+                    }
+                    else
+                    {
+                        // The HTTP request succeeded, but the cancellation was not applied
+                        if(message == null)
+                        {
+                            message = $"Response: {responseBody}";
+                        }
+                        return (false, $"Cancellation failed. {message}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return (false, $"Exception: {ex.Message}");
+                }
+            }
+        }
+
+        private async void btnCancelIrn_Click(object sender, EventArgs e)
+        {
+            if (irn.Text.Length < 12)
+            {
+                MessageBox.Show("Please enter a valid IRN.", "Invalid Input", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            btnCancelIrn.Text = "Cancelling...";
+            btnCancelIrn.Enabled = false;
+            try
+            {
+                // 2. Authenticate and get the token
+                AuthResult authResult = await AuthenticateAsync();
+                if (string.IsNullOrEmpty(authResult.Token))
+                {
+                    MessageBox.Show($"Authorization error: {authResult.ErrorMessage}", "Authentication Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    btnCancelIrn.Text = "Cancel IRN";
+                    btnCancelIrn.Enabled = true;
+                    return;
+                }
+
+                string accessToken = authResult.Token;
+
+                var result = await CancelIRNAsync(irn.Text, accessToken);
+
+                if (result.IsSuccess)
+                {
+                    con.Open();
+                    try
+                    {
+                        string updateQuery = "UPDATE BILL SET IRN = '', SIGNED_INVOICE = '' WHERE bill_id = @bill_id AND firm = @firm";
+
+                        using (SqlCommand cmd = new SqlCommand(updateQuery, con))
+                        {
+                            // Best Practice: Define parameters once outside the loop to improve performance
+                            cmd.Parameters.AddWithValue("@bill_id", invoiceNo.Text);
+                            cmd.Parameters.AddWithValue("@firm", company);
+
+                            cmd.ExecuteNonQuery();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Database Update Error: {ex.Message}", "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    finally
+                    {
+                        irn.Text = "";
+                        UpdateQrBtn("");
+                        con.Close();
+                    }
+
+                    MessageBox.Show("eInvoice cancelled successfully!\n\nResponse: " + result.ResponseMessage,
+                        "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else
+                {
+                    MessageBox.Show("Failed to cancel eInvoice.\n\nDetails: " + result.ResponseMessage,
+                        "Cancellation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred: {ex.Message}", "Exception", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            btnCancelIrn.Text = "Cancel IRN";
+            btnCancelIrn.Enabled = true;
         }
     }
 }

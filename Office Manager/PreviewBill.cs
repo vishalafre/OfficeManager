@@ -1,18 +1,24 @@
-﻿using Microsoft.Office.Core;
+﻿using DocumentFormat.OpenXml.Packaging;
+using Microsoft.Office.Core;
 using Microsoft.Office.Interop.Excel;
+using NPOI.XWPF.UserModel;
+using QRCoder;
 using System;
+using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Drawing.Printing;
 using System.IO;
+using System.Management;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Runtime.InteropServices;
-using System.Management;
+using Word = Microsoft.Office.Interop.Word;
+using System.Linq;
 
 namespace Office_Manager
 {
@@ -283,6 +289,39 @@ namespace Office_Manager
             }
         }
 
+        private void PrintPDF(string fileName, string targetPrinterName)
+        {
+            try
+            {
+                ProcessStartInfo info = new ProcessStartInfo(fileName);
+                // "PrintTo" allows you to specify the printer, avoiding WMI changes
+                info.Verb = "PrintTo";
+                info.Arguments = $"\"{targetPrinterName}\"";
+                info.UseShellExecute = true;
+                info.CreateNoWindow = true;
+                info.WindowStyle = ProcessWindowStyle.Hidden;
+
+                using (Process p = new Process())
+                {
+                    p.StartInfo = info;
+                    p.Start();
+
+                    // Wait up to 10 seconds for the application to spool the job
+                    p.WaitForExit(10000);
+
+                    // Force kill it if it's stubbornly staying open in the background
+                    if (!p.HasExited)
+                    {
+                        p.Kill();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error printing: {ex.Message}");
+            }
+        }
+
         protected override void OnClosed(EventArgs e)
         {
             try
@@ -466,6 +505,190 @@ namespace Office_Manager
             var home = new CompanyHome(company, lPath);
             home.MdiParent = ParentForm;
             home.Show();
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            btnPrintEwb.Enabled = false;
+
+            string docxPath = @"Files\EWB_Format.docx";
+            string tempDocxPath = @"Files\EWB_Temp.docx";
+            string finalPdfPath = @"Files\EWB.pdf";
+
+            con.Open();
+
+            string query = @"
+            SELECT b.BILL_ID, ewaybill_no, EWB_TIME, bill_dt, c.gstin AS FROM_GSTIN, b.firm, 
+                   cs.DISTANCE, irn, cb.GSTIN AS CB_GSTIN, cb.CNAME, cs.CITY, 
+                   cs.PINCODE, BILL_AMT, MIN(hsn) AS hsn, t.TRANS_ID, t.T_NAME
+            FROM bill b
+            JOIN bill_item bi ON b.BILL_ID = bi.BILL_ID
+            JOIN item i ON i.ITEM_ID = bi.ITEM
+            JOIN company c ON b.FIRM = c.NAME
+            JOIN CUSTOMER cs ON cs.CID = b.SHIP_TO
+            JOIN CUSTOMER cb ON cb.CID = b.BILL_TO
+            JOIN TRANSPORT t ON b.TRANSPORTER = t.TID
+            WHERE b.BILL_ID = @bill_id
+            GROUP BY b.BILL_ID, ewaybill_no, EWB_TIME, bill_dt, c.gstin, b.firm, cs.DISTANCE, 
+                     irn, cb.GSTIN, cb.CNAME, cs.CITY, cs.PINCODE, BILL_AMT, t.TRANS_ID, t.T_NAME";
+
+            Dictionary<string, string> mappings = new Dictionary<string, string>();
+            string qrEwbNo = "", qrFromGstin = "", qrEwbDt = "", billDt = "";
+
+            // 1. Fetch Data from SQL
+            using (SqlCommand cmd = new SqlCommand(query, con))
+            {
+                cmd.Parameters.AddWithValue("@bill_id", billNo);
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        qrEwbNo = reader["ewaybill_no"]?.ToString() ?? "";
+                        qrFromGstin = reader["FROM_GSTIN"]?.ToString() ?? "";
+                        qrEwbDt = reader["EWB_TIME"] != DBNull.Value ? Convert.ToDateTime(reader["EWB_TIME"]).ToString("dd/MM/yyyy hh:mm:ss tt") : "";
+                        billDt = reader["BILL_DT"] != DBNull.Value ? Convert.ToDateTime(reader["BILL_DT"]).ToString("dd/MM/yyyy") : "";
+
+                        mappings.Add("#EWB_NO", qrEwbNo);
+                        mappings.Add("#EWB_DT", qrEwbDt);
+                        mappings.Add("#BILL_DT", billDt);
+                        mappings.Add("#GSTIN", qrFromGstin);
+                        mappings.Add("#COMPANY", reader["firm"]?.ToString() ?? "");
+                        mappings.Add("#DIST", reader["DISTANCE"]?.ToString() ?? "");
+                        mappings.Add("#IRN", reader["irn"]?.ToString() ?? "");
+                        mappings.Add("#TO_GSTIN", reader["CB_GSTIN"]?.ToString() ?? "");
+                        mappings.Add("#PARTY", reader["CNAME"]?.ToString() ?? "");
+                        mappings.Add("#CITY", reader["CITY"]?.ToString() ?? "");
+                        mappings.Add("#PINCODE", reader["PINCODE"]?.ToString() ?? "");
+                        mappings.Add("#BILL_NO", reader["BILL_ID"]?.ToString() ?? "");
+                        mappings.Add("#BILL_AMT", reader["BILL_AMT"]?.ToString() ?? "");
+                        mappings.Add("#HSN", reader["hsn"]?.ToString() ?? "");
+                        mappings.Add("#TRANS_GSTIN", reader["TRANS_ID"]?.ToString() ?? "");
+                        mappings.Add("#TRANS_NAME", reader["T_NAME"]?.ToString() ?? "");
+                    }
+                    else
+                    {
+                        con.Close();
+                        throw new Exception("No data found for the provided BILL_ID.");
+                    }
+                }
+            }
+            con.Close();
+
+            if (qrEwbNo.Equals(""))
+            {
+                MessageBox.Show("No EWB Number found for this bill. Please generate EWB first.");
+                btnPrintEwb.Enabled = true;
+                return;
+            }
+
+            if(qrEwbDt.Equals(""))
+            {
+                con.Close();
+                MessageBox.Show("EWB is not generated using API. Please print the eWayBill directly from the portal.");
+                btnPrintEwb.Enabled = true;
+                return;
+            }
+
+            // 2. Generate new QR Code
+            string qrText = $"{qrEwbNo}/{qrFromGstin}/{qrEwbDt}";
+            QRCodeGenerator qrGenerator = new QRCodeGenerator();
+            QRCodeData qrCodeData = qrGenerator.CreateQrCode(qrText, QRCodeGenerator.ECCLevel.Q);
+            PngByteQRCode qrCode = new PngByteQRCode(qrCodeData);
+            byte[] qrBytes = qrCode.GetGraphic(10);
+
+            // 3. Edit the Word Document using OpenXML
+            // First, create a copy of the template to work on
+            File.Copy(docxPath, tempDocxPath, true);
+
+            using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(tempDocxPath, true))
+            {
+                // --- TEXT REPLACEMENT ---
+                // The most robust way to replace text in OpenXML (avoiding the "split run" issue) 
+                // is to read the entire document XML, perform string replacements, and write it back.
+                string docText = null;
+                using (StreamReader sr = new StreamReader(wordDoc.MainDocumentPart.GetStream()))
+                {
+                    docText = sr.ReadToEnd();
+                }
+
+                // Execute text replacements
+                foreach (var kvp in mappings)
+                {
+                    // Escape XML characters just in case your DB data contains '<', '>', or '&'
+                    string safeValue = System.Security.SecurityElement.Escape(kvp.Value);
+                    docText = docText.Replace(kvp.Key, safeValue);
+                }
+
+                // Write the modified XML back to the document
+                using (StreamWriter sw = new StreamWriter(wordDoc.MainDocumentPart.GetStream(FileMode.Create)))
+                {
+                    sw.Write(docText);
+                }
+
+                // --- IMAGE REPLACEMENT ---
+                // Find the first image part in the document and overwrite its data stream
+                ImagePart imagePart = wordDoc.MainDocumentPart.ImageParts.FirstOrDefault();
+                if (imagePart != null)
+                {
+                    using (MemoryStream ms = new MemoryStream(qrBytes))
+                    {
+                        imagePart.FeedData(ms);
+                    }
+                }
+
+                // Save changes to the OpenXML document
+                wordDoc.MainDocumentPart.Document.Save();
+            }
+
+            // 4. Convert DOCX to PDF using Word Interop
+            ConvertDocxToPdf(Path.GetFullPath(tempDocxPath), Path.GetFullPath(finalPdfPath));
+
+            // Clean up temporary docx
+            if (File.Exists(tempDocxPath))
+            {
+                //File.Delete(tempDocxPath);
+            }
+
+            btnPrintEwb.Enabled = true;
+
+            // Print docx file
+
+            if (printersCb.SelectedItem.ToString().Equals(defaultPrinter))
+            {
+                SendToPrinter(tempDocxPath);
+            }
+            else
+            {
+                bool printed = false;
+                SendToPrinter(tempDocxPath, printersCb.SelectedItem.ToString());
+                printed = true;
+            }
+        }
+
+        private void ConvertDocxToPdf(string wordFile, string pdfFile)
+        {
+            Word.Application appWord = new Word.Application();
+            appWord.Visible = false;
+            Word.Document wordDocument = null;
+
+            try
+            {
+                wordDocument = appWord.Documents.Open(wordFile);
+                wordDocument.ExportAsFixedFormat(pdfFile, Word.WdExportFormat.wdExportFormatPDF);
+            }
+            finally
+            {
+                if (wordDocument != null)
+                {
+                    wordDocument.Close(Word.WdSaveOptions.wdDoNotSaveChanges);
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(wordDocument);
+                }
+                if (appWord != null)
+                {
+                    appWord.Quit();
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(appWord);
+                }
+            }
         }
     }
 }

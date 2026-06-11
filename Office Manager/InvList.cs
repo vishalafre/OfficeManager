@@ -1200,10 +1200,11 @@ namespace Office_Manager
 
                             // update invoices
 
-                            SqlCommand cmd = new SqlCommand("update bill set EWAYBILL_NO = @EWAYBILL_NO where bill_id = @bill_id and firm = @firm", con);
+                            SqlCommand cmd = new SqlCommand("update bill set EWAYBILL_NO = @EWAYBILL_NO, EWB_TIME = @EWB_TIME where bill_id = @bill_id and firm = @firm", con);
                             cmd.Parameters.AddWithValue("@FIRM", company);
                             cmd.Parameters.AddWithValue("@BILL_ID", billId.Text);
                             cmd.Parameters.AddWithValue("@EWAYBILL_NO", ewbNo.Text);
+                            cmd.Parameters.AddWithValue("@EWB_TIME", DateTime.Now);
                             cmd.ExecuteNonQuery();
                         }
                     }
@@ -1731,11 +1732,12 @@ namespace Office_Manager
                                 localEWayBillIds.Add(billId.Text, ewbNo.Text);
 
                                 // Update invoices
-                                using (SqlCommand cmd = new SqlCommand("update bill set EWAYBILL_NO = @EWAYBILL_NO where bill_id = @bill_id and firm = @firm", con))
+                                using (SqlCommand cmd = new SqlCommand("update bill set EWAYBILL_NO = @EWAYBILL_NO, EWB_TIME = @EWB_TIME where bill_id = @bill_id and firm = @firm", con))
                                 {
                                     cmd.Parameters.AddWithValue("@firm", targetCompany);
                                     cmd.Parameters.AddWithValue("@bill_id", billId.Text);
                                     cmd.Parameters.AddWithValue("@EWAYBILL_NO", ewbNo.Text);
+                                    cmd.Parameters.AddWithValue("@EWB_TIME", DateTime.Now);
                                     cmd.ExecuteNonQuery();
                                 }
                             }
@@ -2410,7 +2412,7 @@ namespace Office_Manager
                 con.Open(); // Re-open connection for updates
                 try
                 {
-                    string updateQuery = "UPDATE BILL SET EWAYBILL_NO = @EWAYBILL_NO, IRN = @IRN, SIGNED_INVOICE = @SIGNED_INVOICE WHERE bill_id = @bill_id AND firm = @firm";
+                    string updateQuery = "UPDATE BILL SET EWAYBILL_NO = @EWAYBILL_NO, EWB_TIME = @EWB_TIME, IRN = @IRN, SIGNED_INVOICE = @SIGNED_INVOICE WHERE bill_id = @bill_id AND firm = @firm";
 
                     foreach (var invoice in localEWayBillIds.Keys)
                     {
@@ -2427,6 +2429,7 @@ namespace Office_Manager
                             {
                                 cmd.Parameters.AddWithValue("@EWAYBILL_NO", localEWayBillIds[invoice]);
                                 cmd.Parameters.AddWithValue("@IRN", localIrnNos[invoice]);
+                                cmd.Parameters.AddWithValue("@EWB_TIME", DateTime.Now);
                                 cmd.Parameters.AddWithValue("@SIGNED_INVOICE", signedInvoiceText);
                                 cmd.Parameters.AddWithValue("@bill_id", invoice);
                                 cmd.Parameters.AddWithValue("@firm", targetCompany);

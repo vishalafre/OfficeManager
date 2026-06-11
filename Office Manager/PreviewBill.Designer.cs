@@ -46,6 +46,7 @@
             this.button3 = new System.Windows.Forms.Button();
             this.button9 = new System.Windows.Forms.Button();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.btnPrintEwb = new System.Windows.Forms.Button();
             this.addInv.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
@@ -76,6 +77,7 @@
             // addInv
             // 
             this.addInv.BackColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.addInv.Controls.Add(this.btnPrintEwb);
             this.addInv.Controls.Add(this.printersCb);
             this.addInv.Controls.Add(this.label3);
             this.addInv.Controls.Add(this.button6);
@@ -113,14 +115,16 @@
             // 
             // button6
             // 
-            this.button6.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button6.Location = new System.Drawing.Point(767, 363);
+            this.button6.BackColor = System.Drawing.Color.ForestGreen;
+            this.button6.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button6.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.button6.Location = new System.Drawing.Point(583, 359);
             this.button6.Margin = new System.Windows.Forms.Padding(4);
             this.button6.Name = "button6";
-            this.button6.Size = new System.Drawing.Size(173, 55);
+            this.button6.Size = new System.Drawing.Size(212, 50);
             this.button6.TabIndex = 64;
-            this.button6.Text = "Print";
-            this.button6.UseVisualStyleBackColor = true;
+            this.button6.Text = "Print Invoice";
+            this.button6.UseVisualStyleBackColor = false;
             this.button6.Click += new System.EventHandler(this.button6_Click);
             // 
             // cc
@@ -267,6 +271,20 @@
             this.pictureBox1.TabStop = false;
             this.pictureBox1.Click += new System.EventHandler(this.pictureBox1_Click);
             // 
+            // btnPrintEwb
+            // 
+            this.btnPrintEwb.BackColor = System.Drawing.Color.Teal;
+            this.btnPrintEwb.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnPrintEwb.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.btnPrintEwb.Location = new System.Drawing.Point(835, 359);
+            this.btnPrintEwb.Margin = new System.Windows.Forms.Padding(4);
+            this.btnPrintEwb.Name = "btnPrintEwb";
+            this.btnPrintEwb.Size = new System.Drawing.Size(212, 50);
+            this.btnPrintEwb.TabIndex = 67;
+            this.btnPrintEwb.Text = "Print EWB";
+            this.btnPrintEwb.UseVisualStyleBackColor = false;
+            this.btnPrintEwb.Click += new System.EventHandler(this.button1_Click);
+            // 
             // PreviewBill
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -315,5 +333,6 @@
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.ComboBox printersCb;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Button btnPrintEwb;
     }
 }
